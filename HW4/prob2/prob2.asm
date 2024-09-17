@@ -14,25 +14,30 @@
 ExitProcess proto,dwExitCode:dword ; Prototype for ExitProcess from Windows API
 
 .data
-array dword 0,1,2,3,4,5,6,7,8,9
-
-result dword ?
+array dword 0,1,2,3,4,5,6,7,8,9  
 
 .code
 main proc
+    mov esi, OFFSET array         
+    mov edi, OFFSET array          
+    add edi, SIZEOF array - TYPE array 
 
-mov eax, SIZEOF array 
-mov ebx, TYPE array[0]
+    
+reverse_loop:
+    cmp esi, edi                    
+    jge done_reversing              
 
-mov ecx,0
+    mov eax, [esi]                  
+    mov ebx, [edi]                  
+    mov [esi], ebx                  
+    mov [edi], eax                  
 
-lp:
+    add esi, TYPE array             
+    sub edi, TYPE array             
 
+    jmp reverse_loop                
 
-cmp ecx, (eax /ebx)
-jne lp
-
-
-    invoke ExitProcess, 0          ; Exit the program
+done_reversing:
+    invoke ExitProcess, 0           
 main endp
 end main
