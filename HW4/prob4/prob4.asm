@@ -1,11 +1,13 @@
 ;============================================================
 ; Author: Josiah Hamm @bakedpotatoLord
-; Title: Basic Arithmetic Test
+; Title: Array Pair Exchange Program
 ; Course: CSC2025X01 Computer Architecture/Assembly Language
-; Date: 09/13/2024
-; Description: This program calculates the result of the 
-;              expression (VarA + VarB) - (VarC + VarD) 
-;              using MASM x86 Assembly Language.
+; Date: 09/17/2024
+; Description: This program exchanges every pair of values in
+;              an array with an even number of elements. Each
+;              item i is swapped with item i + 1, item i + 2 
+;              with i + 3, and so on, using a loop and indexed
+;              addressing.
 ;============================================================
 
 .386                              ; Specify 32-bit code
@@ -14,30 +16,28 @@
 ExitProcess proto,dwExitCode:dword ; Prototype for ExitProcess from Windows API
 
 .data
-source dword 1,2,3,4,5
-
-
+source dword 1, 2, 3, 4, 5, 6, 7, 8  ; Array of even length (8 elements)
 
 .code
 main proc
+    ;===========================
+    ; Registers:
+    ; ECX - Index for accessing the array elements
+    ;===========================
 
-mov ecx, 0
+    mov ecx, 0                             ; Initialize ECX (array index) to 0
 
 lp:
+    PUSH [source + ecx]                    ; Push the value at source[ecx] onto the stack
+    PUSH [source + ecx + TYPE source]      ; Push the value at source[ecx + 1] onto the stack
+    POP  [source + ecx]                    ; Pop the value at source[ecx + 1] into source[ecx]
+    POP  [source + ecx + TYPE source]      ; Pop the value at source[ecx] into source[ecx + 1]
 
-    PUSH [source+ecx]
-    PUSH [source+ecx+ TYPE source]
-    POP [source+ecx]
-    POP [source+ecx+ TYPE source]
+    add ecx, TYPE source * 2               ; Move to the next pair (i + 2 and i + 3)
 
-    add ecx, TYPE source *2
-    
+    cmp ecx, SIZEOF source - TYPE source   ; Check if ECX has reached the end of the array
+    jl lp                                  ; If not, repeat the loop
 
-    cmp ecx, (SIZEOF source - TYPE source)
-    jl lp
-
-
-invoke ExitProcess, 0  
-        
+    invoke ExitProcess, 0                  ; Exit the program
 main endp
 end main

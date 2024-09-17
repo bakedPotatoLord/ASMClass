@@ -1,43 +1,47 @@
 ;============================================================
 ; Author: Josiah Hamm @bakedpotatoLord
-; Title: Basic Arithmetic Test
+; Title: Array Reversal Program
 ; Course: CSC2025X01 Computer Architecture/Assembly Language
-; Date: 09/13/2024
-; Description: This program calculates the result of the 
-;              expression (VarA + VarB) - (VarC + VarD) 
-;              using MASM x86 Assembly Language.
+; Date: 09/17/2024
+; Description: This program reverses the elements of an integer 
+;              array in place using a loop with indexed addressing.
+;              The array size and type are flexible using SIZEOF, 
+;              TYPE, and LENGTHOF operators.
 ;============================================================
 
-.386                              ; Specify 32-bit code
+.386                               ; Specify 32-bit code
 .model flat,stdcall                ; Flat memory model with standard calling conventions
 .stack 4096                        ; Allocate 4 KB of stack space
 ExitProcess proto,dwExitCode:dword ; Prototype for ExitProcess from Windows API
 
 .data
-array dword 0,1,2,3,4,5,6,7,8,9  
+array dword 0, 2, 5, 9, 10, 15, 17, 23, 25, 25  ; 10-element array of doublewords
 
 .code
 main proc
-    mov esi, OFFSET array         
-    mov edi, OFFSET array          
-    add edi, SIZEOF array - TYPE array 
+    ;===========================
+    ; Registers:
+    ; EAX - Points to the current element from the start of the array
+    ; EBX - Points to the current element from the end of the array
+    ;===========================
 
-    
-reverse_loop:
-    cmp esi, edi                    
-    jge done_reversing              
+    mov eax, OFFSET array                   ; EAX points to the start of the array (first element)
+    mov ebx, OFFSET array                   ; EBX points to the start of the array
+    add ebx, SIZEOF array - TYPE array      ; EBX points to the last element of the array
 
-    mov eax, [esi]                  
-    mov ebx, [edi]                  
-    mov [esi], ebx                  
-    mov [edi], eax                  
+lp:
+    ; Swap the elements at EAX and EBX
+    PUSH [ebx]                              ; Save the value at EBX onto the stack
+    PUSH [eax]                              ; Save the value at EAX onto the stack
+    POP [ebx]                               ; Pop the value at EAX into EBX (swap)
+    POP [eax]                               ; Pop the value at EBX into EAX (swap)
 
-    add esi, TYPE array             
-    sub edi, TYPE array             
+    add eax, TYPE array                     ; Move EAX to the next element from the start
+    sub ebx, TYPE array                     ; Move EBX to the previous element from the end
 
-    jmp reverse_loop                
+    cmp eax, ebx                            ; Compare the two pointers (EAX and EBX)
+    jle lp                                  ; If EAX <= EBX, continue the loop (otherwise, stop)
 
-done_reversing:
-    invoke ExitProcess, 0           
+    invoke ExitProcess, 0                   ; Exit the program
 main endp
 end main
