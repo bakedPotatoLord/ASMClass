@@ -32,20 +32,20 @@ tryagainDisplay BYTE "Would you like to enter a new string (y/n)", 0
 main PROC
 
 prompt:
-    mov edx, OFFSET stringPrompt
+    lea edx, stringPrompt
     call WriteString
     call Crlf
-    mov edx, OFFSET stringInput
+    lea edx, stringInput
     mov ecx, 101
     call ReadString
-    mov edx, OFFSET originalStringDisplay
+    lea edx, originalStringDisplay
     call WriteString
-    mov edx, OFFSET stringInput
+    lea edx, stringInput
     call WriteString
     call Crlf
     
-    mov eax, OFFSET stringInput
-    mov ebx, OFFSET compressedString
+    lea eax, stringInput
+    lea ebx, compressedString
 
 compressloop:
     mov dl, [eax]
@@ -58,20 +58,20 @@ compressloop:
     jne compressloop
 
 outputString:
-    mov edx, OFFSET compressedStringDisplay
+    lea edx, compressedStringDisplay
     call WriteString
-    mov edx, OFFSET compressedString
+    lea edx, compressedString
     call WriteString
     call Crlf
 
 ASK_TRY_AGAIN:                        ; Ask user if they want to repeat the program
     call Crlf                         ; Newline for formatting
-    mov edx, OFFSET tryagainDisplay   ; Load try again message
+    lea edx, tryagainDisplay   ; Load try again message
     call WriteString                  ; Display try again prompt
     call ReadChar                     ; Read user response
     .IF al == 'y' || al == 'Y'        ; If user enters 'y' or 'Y', repeat
         call Crlf                     ; Newline for spacing
-        JMP prompt                     ; Jump back 
+        JMP prompt                    ; Jump back 
     .ENDIF
     INVOKE ExitProcess, 0             ; Exit the program with status 0
 main ENDP
