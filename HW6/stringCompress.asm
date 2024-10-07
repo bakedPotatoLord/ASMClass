@@ -59,6 +59,7 @@ prompt:
     lea ebx, compressedString           ; Load the address of the compressed string buffer into EBX
 
 compressloop:
+
     mov dl, [eax]                       ; Load the current character from the input string into DL
     .IF (dl >= 65 && dl <= 90) || (dl >= 97 && dl <= 122)  ; Check if the character is a letter (A-Z or a-z)
         mov [ebx], dl                   ; If it's a letter, store it in the compressed string buffer
@@ -82,7 +83,28 @@ ASK_TRY_AGAIN:                          ; Ask the user if they want to repeat th
     call ReadChar                       ; Read the user's response (single character)
     .IF al == 'y' || al == 'Y'          ; If the user enters 'y' or 'Y', repeat the process
         call Crlf                       ; Newline for spacing
-        JMP prompt                      ; Jump back to the prompt section to start over
+
+        lea eax, stringInput                ; Load the address of the input string into EAX
+        clearStringInput:
+        
+            mov byte ptr [eax], 0 
+            inc eax
+
+            cmp byte ptr [eax], 0
+            jne clearStringInput
+
+        lea ebx, compressedString 
+
+        clearStringOutput:
+            mov byte ptr [ebx], 0 
+            inc ebx
+
+            cmp byte ptr [ebx], 0
+            jne clearStringOutput
+
+        JMP prompt  
+
+
     .ENDIF
     INVOKE ExitProcess, 0               ; Exit the program with status 0
 
