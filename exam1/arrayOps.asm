@@ -254,29 +254,56 @@ getOdds PROC
 ; sorts array in place
 sortArray PROC uses ecx edx esi edi
 
-    mov ecx,0 ; main index
-    mov edx, 0 ; temp index
+    mov ecx,ebx ; main index
+    mov edx, ebx ; temp index
+    mov eax, [ebx+eax*4]
 
+    ; EAX : end of array ref
     ; EBX : array ref
-    ; EAX : number of elements
+    ; ECX : main index
+    ; EDX : temp index
+
+
 
     .WHILE(ecx < eax)
-    mov esi, (ebx+ecx*4) ; base loop min
+    mov esi, ecx  ; base loop min value
+
         .WHILE(edx < eax)
-            .IF([[ebx+edx*4]] < [esi])
-                mov esi, (ebx+edx*4)
+            push eax
+            mov eax, [esi]
+            .IF([edx] < eax)
+                mov esi, edx
             .ENDIF
-            inc edx
+            pop eax
+            add edx, 4
         .ENDW
     
-    
-    
+    push eax
+    push esi
 
-    inc ecx
+    call swap    
+
+    add ecx, 4
     .ENDW
 
     ret
     sortArray ENDP
+
+
+;pops top two refs, and switches their values
+swap PROC uses eax ebx ecx
+    pop eax
+    pop ebx
+
+    push [eax]
+    push [ebx]
+
+    pop [eax]
+    pop [ebx]
+    
+
+    ret
+    swap ENDP
 
 
 divider PROC uses edx
