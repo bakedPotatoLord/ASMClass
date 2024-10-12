@@ -54,7 +54,9 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 ;   - Uses data segments: promptInput, oddValues, evenValues, and various display messages.
 ;
 ; Register Usage:
-;   - EAX, EBX, ECX, EDX, ESI, EDI used for general purposes and procedure calls.
+; - EAX: General purpose, stores user input or temporary values.         
+; - ECX: Loop counter for array processing.                              
+; - EDX: Pointer to memory locations (array base addresses).  
 ;
 ; Functional Description:
 ;   - Handles user input, populates the array, manages default values, and orchestrates
@@ -147,7 +149,10 @@ main PROC
 ;   - Utilizes promptInput, oddValues, evenValues arrays.
 ;
 ; Register Usage:
-;   - Uses EAX, EBX, ECX, EDX, ESI, EDI for procedure calls.
+; - EAX: Used for storing intermediate results.                          
+; - ECX: Loop counter for traversing the array.                          
+; - EDX: Base address of the array.                                      
+; - ESI/EDI: Used in findMinMax to hold current min and max values.      
 ;
 ; Functional Description:
 ;   - Orchestrates the sequence of array processing tasks.
@@ -179,7 +184,12 @@ arrayOps ENDP
 ;   - Reads from promptInput array.
 ;
 ; Register Usage:
-;   - Uses EAX, EBX, ECX, EDX, ESI, EDI for processing.
+; - EAX: General purpose for current element processing.                 
+; - EBX: Used for comparing values.                                      
+; - ECX: Loop counter for traversing the array.                          
+; - EDX: Base address of the input array.                                
+; - ESI: Stores current minimum value.                                   
+; - EDI: Stores current maximum value.                                   
 ;
 ; Functional Description:
 ;   - Iterates through the array to determine min and max values.
@@ -239,7 +249,11 @@ minMaxSearch ENDP
 ;   - Reads from promptInput array.
 ;
 ; Register Usage:
-;   - Uses EAX, EBX, ECX, EDX, ESI for calculations and output.
+; - EAX: Accumulator for summing the array elements.                     
+; - ECX: Loop counter for traversing the array.                          
+; - EDX: Base address of the input array.                                
+; - EBX: Denominator (fixed at 25).                                      
+; - ESI: Stores remainder from division.                                 
 ;
 ; Functional Description:
 ;   - Sums all array elements and divides by 25 to find the average.
@@ -298,7 +312,10 @@ findAverage ENDP
 ;   - Stores even values in evenValues array.
 ;
 ; Register Usage:
-;   - Uses EAX, EBX, ECX, EDX, EDI, ESI for processing and sorting.
+; - EAX: Stores current element for checking if it's even.               
+; - ECX: Loop counter for traversing the array.                          
+; - EDX: Base address for reading the input array.                       
+; - EBX: Stores the even number count.                                   
 ;
 ; Functional Description:
 ;   - Extracts even numbers, sorts them, and displays the sorted list.
@@ -366,7 +383,10 @@ getEvens ENDP
 ;   - Stores odd values in oddValues array.
 ;
 ; Register Usage:
-;   - Uses EAX, EBX, ECX, EDX, EDI, ESI for processing and sorting.
+; - EAX: Stores current element for checking if it's odd.                
+; - ECX: Loop counter for traversing the array.                          
+; - EDX: Base address for reading the input array.                       
+; - EBX: Stores the odd number count.                                    
 ;
 ; Functional Description:
 ;   - Extracts odd numbers, sorts them, and displays the sorted list.
@@ -434,7 +454,11 @@ getOdds ENDP
 ;   - Uses the provided array in EBX.
 ;
 ; Register Usage:
-;   - Uses ECX, EDX, ESI, EDI for sorting logic.
+; - EAX: Holds address of the end of the array.  
+; - EBX: Holds the base address of the array (index 0). 
+; - ECX: Holds pointer for the current element of the outer array.                    
+; - EDX: Holds pointer for the current element of the inner array.         
+; - ESI: Holds pointer to the current lowest element in the inner loop.                       
 ;
 ; Functional Description:
 ;   - Implements selection sort by finding the minimum element in the unsorted portion
