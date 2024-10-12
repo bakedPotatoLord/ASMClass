@@ -21,7 +21,8 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
     evenValues dd 25  DUP(0)
 
     numberPromptDisplay db "Enter an array of non-negative integers with a maximum lenth of 25.",13,10,
-    "Any unused spaces will be assigned sequential values starting with 1 ",13,10,
+    "Any unused spaces will be assigned sequential values starting with 1.",13,10,
+    "Empty numbers will be assigned a value of 0.", 13,10,
     "Press enter between each number. Enter a negative value to end your input.", 0
 
     minValueDisplay db "The minimum value is: ", 0
@@ -89,9 +90,13 @@ main PROC
             JMP ask_try_again
 
         malformedInput:
+            call Crlf
+            call divider
             lea edx, malformedInputDisplay
             call WriteString
             call Crlf
+            call Crlf
+            call divider
             jmp progStart
 
 
@@ -115,7 +120,7 @@ arrayOps PROC uses eax ebx ecx edx esi edi
     call getEvens
     call getOdds
     call divider
-    ret
+ret
     arrayOps ENDP
 
 minMaxSearch PROC uses eax ebx ecx edx esi edi
@@ -127,7 +132,7 @@ minMaxSearch PROC uses eax ebx ecx edx esi edi
     mov esi, [edx] ; max
     mov edi, [edx] ; min
 
-    searchLoop:
+    .WHILE(ecx < 25)
         mov ebx, [edx+ecx*4]
 
         .IF(ebx > edi)
@@ -138,36 +143,33 @@ minMaxSearch PROC uses eax ebx ecx edx esi edi
         .ENDIF
 
         inc ecx
-        cmp ecx, 25
-        jl searchLoop
-    displayValues:
-        call divider
-        lea edx, minValueDisplay
-        call WriteString
-        mov eax, esi
-        call WriteInt
-        call Crlf
+    .ENDW
 
-        lea edx, maxValueDisplay
-        call WriteString
-        mov eax, edi
-        call WriteInt
-        call Crlf
+    call divider
+    lea edx, minValueDisplay
+    call WriteString
+    mov eax, esi
+    call WriteInt
+    call Crlf
 
-        ret
+    lea edx, maxValueDisplay
+    call WriteString
+    mov eax, edi
+    call WriteInt
+    call Crlf
+
+    ret
     minMaxSearch ENDP
 
-
+;takes prompt input ptr in edx
 findAverage PROC uses eax ebx ecx edx esi edi
-    xor eax, eax
-    mov ecx, 1
+    xor eax, eax ;clear EAX
+    mov ecx, 0
 
-    addToSum:
+    .WHILE(ecx < 25)
         add eax, [edx+ecx*4]
         inc ecx
-        .IF( ecx < 25) 
-        JMP addToSum
-        .ENDIF
+    .ENDW
 
     divide:
 
@@ -175,6 +177,7 @@ findAverage PROC uses eax ebx ecx edx esi edi
         xor edx, edx
         xor ecx, ecx
         div ebx
+        mov esi, edx ; move remainder to esi
 
     outputResults:
 
@@ -182,13 +185,13 @@ findAverage PROC uses eax ebx ecx edx esi edi
 
         lea edx, averageValueDisplay
         call WriteString
-        mov ebx, eax
+        
         call WriteInt
         call Crlf
 
         lea edx, remainderValueDisplay
         call WriteString
-        mov ecx, eax
+        mov eax, esi
         call WriteInt
         call Crlf
 
