@@ -8,9 +8,9 @@
 ;                      max, finding the mean, sorting by even and odd   ;
 ;                      values, and finding the average and remainder.   ;
 ;                      A repeat option is provided to try again.        ;
-; Date:            10/4/2024                                            ;
+; Date:            10/11/2024                                            ;
 ; Revisions:       None                                                 ;
-; Date Last Modified: 10/4/2024                                         ;
+; Date Last Modified: 10/11/2024                                         ;
 ; **********************************************************************;
 
 INCLUDE C:\Irvine\Irvine32.inc          ; Include Irvine32 library for basic I/O operations
