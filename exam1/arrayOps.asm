@@ -114,6 +114,7 @@ arrayOps PROC uses eax ebx ecx edx esi edi
     call findAverage
     call getEvens
     call getOdds
+    call divider
     ret
     arrayOps ENDP
 
@@ -216,6 +217,7 @@ getEvens PROC uses eax ebx ecx edx edi esi
         cmp ecx, 25
         jl traverseLoop
 
+
     mov eax, edi
 
     call sortArray
@@ -227,14 +229,15 @@ getEvens PROC uses eax ebx ecx edx edi esi
     call Crlf
 
     mov ecx, 0
-    displayLoop:
+    .WHILE(ecx < edi)
         mov eax, [ebx+ecx*4]
         call WriteInt
         mov al, ' '
         call WriteChar
         inc ecx
         cmp ecx, edi
-        jl displayLoop
+    .ENDW
+
 
     call Crlf
     ret
@@ -274,14 +277,14 @@ getOdds PROC
     call Crlf
 
     mov ecx, 0
-    displayLoop:
+    .WHILE(ecx < edi)
         mov eax, [ebx+ecx*4]
         call WriteInt
         mov al, ' '
         call WriteChar
         inc ecx
         cmp ecx, edi
-        jl displayLoop
+    .ENDW
 
     call Crlf
 
