@@ -1,10 +1,16 @@
 ; **********************************************************************;
-; Author:          Josiah Hamm                                           ;
-; Course Number:   CSC2025X01 - Computer Architecture/Assembly Language  ;
-; Program Title:   String Compression Program (StringCompression.asm)    ;
-; Date:            10/4/2024                                             ;
-; Revisions:       None                                                  ;
-; Date Last Modified: 10/4/2024                                          ;
+; Author:          Josiah Hamm     @bakedPotatoLord                     ;
+; Course Number:   CSC2025X01 - Computer Architecture/Assembly Language ;
+; Program Title:   String Compression Program (StringCompression.asm)   ;
+; Program Description: This program takes an array of 25 non-negative   ;
+;                      integers and applies some basic array operations ;
+;                      to it. Some of these include finding the min and ;
+;                      max, finding the mean, sorting by even and odd   ;
+;                      values, and finding the average and remainder.   ;
+;                      A repeat option is provided to try again.        ;
+; Date:            10/4/2024                                            ;
+; Revisions:       None                                                 ;
+; Date Last Modified: 10/4/2024                                         ;
 ; **********************************************************************;
 
 INCLUDE C:\Irvine\Irvine32.inc          ; Include Irvine32 library for basic I/O operations
