@@ -237,14 +237,53 @@ getEvens PROC uses eax ebx ecx edx edi esi
         jl displayLoop
 
     call Crlf
-        
-
-
     ret
     getEvens ENDP
 
 
 getOdds PROC
+
+    lea edx, promptInput
+    mov ecx, 0 ;;prompt index
+
+    lea ebx, oddValues
+    mov edi, 0 ;;even index
+
+    traverseLoop:
+        mov eax, [edx+ecx*4]
+        mov esi, eax
+        and esi, 1
+        .IF(esi == 1)
+            mov [ebx+edi*4], eax
+            inc edi
+        .ENDIF
+
+        inc ecx
+
+        cmp ecx, 25
+        jl traverseLoop
+
+    mov eax, edi
+
+    call sortArray
+
+    call divider
+
+    lea edx, sortedOddsDisplay
+    call WriteString
+    call Crlf
+
+    mov ecx, 0
+    displayLoop:
+        mov eax, [ebx+ecx*4]
+        call WriteInt
+        mov al, ' '
+        call WriteChar
+        inc ecx
+        cmp ecx, edi
+        jl displayLoop
+
+    call Crlf
 
     ret
     getOdds ENDP
