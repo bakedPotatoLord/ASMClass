@@ -16,13 +16,17 @@ INCLUDE C:\Irvine\Irvine32.inc          ; Include Irvine32 library for basic I/O
 INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
 .data
-stringPrompt BYTE "Please enter a one-line string with a maximum of 100 characters:", 0  ; Prompt message for user input
-originalStringDisplay BYTE "Original String: ", 0   ; Label for displaying the original string
-compressedStringDisplay BYTE "Compressed String: ", 0 ; Label for displaying the compressed string
-tryagainDisplay BYTE "Would you like to enter a new string (y/n)", 0 ; Prompt for asking if the user wants to try again
 
-stringInput BYTE 101 DUP(0)             ; Buffer to hold the user input string (up to 100 characters + null terminator)
-compressedString BYTE 101 DUP(0)        ; Buffer to store the compressed string after removing non-alphabetic characters
+    stringPrompt DB "Please enter a one-line string with a maximum of 100 characters:", 0  ; Prompt message for user input
+    originalStringDisplay DB "Original String: ", 0   ; Label for displaying the original string
+    compressedStringDisplay DB "Compressed String: ", 0 ; Label for displaying the compressed string
+    tryagainDisplay DB "Would you like to enter a new string (y/n)", 0 ; Prompt for asking if the user wants to try again
+
+    alphabet DB "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0
+    letterFreq DW 26 dup(0)
+
+    stringInput DB 101 DUP(0)             ; Buffer to hold the user input string (up to 100 characters + null terminator)
+    compressedString DB 101 DUP(0)        ; Buffer to store the compressed string after removing non-alphabetic characters
 
 .code
 
@@ -42,72 +46,90 @@ compressedString BYTE 101 DUP(0)        ; Buffer to store the compressed string 
 
 main PROC
 
-prompt:
-    lea edx, stringPrompt               ; Load the address of the prompt message
-    call WriteString                    ; Display the prompt
-    call Crlf                           ; Move to the next line for input
-    lea edx, stringInput                ; Load the address of the input buffer
-    mov ecx, 101                        ; Maximum input length (100 characters + null terminator)
-    call ReadString                     ; Read the input string from the user
-    lea edx, originalStringDisplay      ; Load the label for the original string
-    call WriteString                    ; Display the label
-    lea edx, stringInput                ; Load the input string address
-    call WriteString                    ; Display the original string
-    call Crlf                           ; Newline for spacing
-
-    lea eax, stringInput                ; Load the address of the input string into EAX
-    lea ebx, compressedString           ; Load the address of the compressed string buffer into EBX
-
-compressloop:
-
-    mov dl, [eax]                       ; Load the current character from the input string into DL
-    .IF (dl >= 65 && dl <= 90) || (dl >= 97 && dl <= 122)  ; Check if the character is a letter (A-Z or a-z)
-        mov [ebx], dl                   ; If it's a letter, store it in the compressed string buffer
-        inc ebx                         ; Move to the next position in the compressed string buffer
-    .ENDIF
-    inc eax                             ; Move to the next character in the input string
-    cmp dl, 0                           ; Check if the current character is the null terminator (end of string)
-    jne compressloop                    ; If not, repeat the loop for the next character
-
-outputString:
-    lea edx, compressedStringDisplay    ; Load the label for the compressed string
-    call WriteString                    ; Display the label
-    lea edx, compressedString           ; Load the compressed string address
-    call WriteString                    ; Display the compressed string
-    call Crlf                           ; Newline for spacing
-
-ASK_TRY_AGAIN:                          ; Ask the user if they want to repeat the program
-    call Crlf                           ; Newline for formatting
-    lea edx, tryagainDisplay            ; Load the try again prompt message
-    call WriteString                    ; Display the prompt
-    call ReadChar                       ; Read the user's response (single character)
-    .IF al == 'y' || al == 'Y'          ; If the user enters 'y' or 'Y', repeat the process
-        call Crlf                       ; Newline for spacing
+    prompt:
+        lea edx, stringPrompt               ; Load the address of the prompt message
+        call WriteString                    ; Display the prompt
+        call Crlf                           ; Move to the next line for input
+        lea edx, stringInput                ; Load the address of the input buffer
+        mov ecx, 101                        ; Maximum input length (100 characters + null terminator)
+        call ReadString                     ; Read the input string from the user
+        lea edx, originalStringDisplay      ; Load the label for the original string
+        call WriteString                    ; Display the label
+        lea edx, stringInput                ; Load the input string address
+        call WriteString                    ; Display the original string
+        call Crlf                           ; Newline for spacing
 
         lea eax, stringInput                ; Load the address of the input string into EAX
-        clearStringInput:
-        
-            mov byte ptr [eax], 0 
-            inc eax
+        lea ebx, compressedString           ; Load the address of the compressed string buffer into EBX
 
-            cmp byte ptr [eax], 0
-            jne clearStringInput
+    .WHILE(dl != 0)
+        mov dl, [eax]                       ; Load the current character from the input string into DL
+        .IF (dl >= 65 && dl <= 90) || (dl >= 97 && dl <= 122)  ; Check if the character is a letter (A-Z or a-z)
+            mov [ebx], dl                   ; If it's a letter, store it in the compressed string buffer
+            inc ebx                         ; Move to the next position in the compressed string buffer
+        .ENDIF
+        inc eax                             ; Move to the next character in the input string
+    .ENDW                
 
-        lea ebx, compressedString 
+    outputString:
+        lea edx, compressedStringDisplay    ; Load the label for the compressed string
+        call WriteString                    ; Display the label
+        lea edx, compressedString           ; Load the compressed string address
+        call WriteString                    ; Display the compressed string
+        call Crlf                           ; Newline for spacing
 
-        clearStringOutput:
-            mov byte ptr [ebx], 0 
-            inc ebx
+    ASK_TRY_AGAIN:                          ; Ask the user if they want to repeat the program
+        call Crlf                           ; Newline for formatting
+        lea edx, tryagainDisplay            ; Load the try again prompt message
+        call WriteString                    ; Display the prompt
+        call ReadChar                       ; Read the user's response (single character)
+        .IF al == 'y' || al == 'Y'          ; If the user enters 'y' or 'Y', repeat the process
+            call Crlf                       ; Newline for spacing
 
-            cmp byte ptr [ebx], 0
-            jne clearStringOutput
+            call clearvars
 
-        JMP prompt  
-
-
-    .ENDIF
+            JMP prompt  
+        .ENDIF
     INVOKE ExitProcess, 0               ; Exit the program with status 0
 
 main ENDP
+
+//takes from compressedString
+//writes to letterFreq
+countletters PROC
+
+    lea eax, compressedString
+    lea ebx, letterFreq
+    lea ecx, alphabet
+
+    INVOKE str_ucase ADDR compressedString
+
+    WHILE(byte ptr [eax] != 0)
+
+        mov dl, byte ptr [eax]
+        sub dl, 'A'
+
+        inc word ptr [ebx + 2 * edx]
+
+
+        inc eax //move through string
+    .ENDW
+
+countletters ENDP
+
+clearvars PROC
+    lea eax, stringInput    ; Load the address of the input string into EAX
+    WHILE(byte ptr [eax] != 0)
+        mov byte ptr [eax], 0 
+        inc eax
+    .ENDW
+    lea ebx, compressedString 
+    WHILE(byte ptr [ebx] != 0)
+        mov byte ptr [ebx], 0 
+        inc ebx
+    .ENDW
+    ret
+clearvars ENDP
+
 
 END main
