@@ -78,6 +78,8 @@ main PROC
         call WriteString                    ; Display the compressed string
         call Crlf                           ; Newline for spacing
 
+        call countletters                   ; Call the countletters procedure
+
     ASK_TRY_AGAIN:                          ; Ask the user if they want to repeat the program
         call Crlf                           ; Newline for formatting
         lea edx, tryagainDisplay            ; Load the try again prompt message
@@ -94,42 +96,82 @@ main PROC
 
 main ENDP
 
-//takes from compressedString
-//writes to letterFreq
-countletters PROC
+;takes from compressedString
+;writes to letterFreq
+countletters PROC uses eax ebx ecx edx
 
     lea eax, compressedString
     lea ebx, letterFreq
     lea ecx, alphabet
+    xor edx, edx
 
-    INVOKE str_ucase ADDR compressedString
+    INVOKE str_ucase, ADDR compressedString
 
-    WHILE(byte ptr [eax] != 0)
-
+    .WHILE(byte ptr [eax] != 0)
         mov dl, byte ptr [eax]
         sub dl, 'A'
-
         inc word ptr [ebx + 2 * edx]
-
-
-        inc eax //move through string
+        inc eax ;move through string
     .ENDW
 
+    call displayLetterFreq
+    ret
 countletters ENDP
 
-clearvars PROC
+displayLetterFreq PROC uses eax edx ecx
+
+    lea edx, alphabet
+    xor eax, eax
+
+    .WHILE(byte ptr [edx] != 0)
+        mov al, byte ptr [edx]
+        call WriteChar
+
+        mov al, ' '
+        call WriteChar
+        inc edx
+    .ENDW
+
+    call Crlf
+
+    lea edx, letterFreq
+    mov ecx, edx
+    add ecx, (SIZEOF letterFreq)
+
+    .WHILE(edx < ecx)
+        mov ax, word ptr [edx]
+        call WriteDec
+        mov al, ' '
+        call WriteChar
+        add edx, 2
+    .ENDW
+
+    ret
+displayLetterFreq ENDP
+
+clearVars PROC uses eax ebx
     lea eax, stringInput    ; Load the address of the input string into EAX
-    WHILE(byte ptr [eax] != 0)
+    .WHILE(byte ptr [eax] != 0)
         mov byte ptr [eax], 0 
         inc eax
     .ENDW
-    lea ebx, compressedString 
-    WHILE(byte ptr [ebx] != 0)
-        mov byte ptr [ebx], 0 
-        inc ebx
+    lea eax, compressedString 
+    .WHILE(byte ptr [eax] != 0)
+        mov byte ptr [eax], 0 
+        inc eax
     .ENDW
+
+    lea eax, letterFreq
+    mov ebx, eax
+    add ebx, SIZEOF letterFreq
+
+    .WHILE(eax < ebx)
+        mov word ptr [eax], 0
+        add eax, 2
+    .ENDW
+
     ret
-clearvars ENDP
+clearVars ENDP
 
 
 END main
