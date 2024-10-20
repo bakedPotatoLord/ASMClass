@@ -1,16 +1,11 @@
 ; **********************************************************************;
-; Program Name:   String Compression Program (StringCompression.asm)    ;
-; Program Description: This program prompts the user for a string       ;
-;                      (maximum of 100 characters), removes all         ;
-;                      non-alphabetical characters, and displays the    ;
-;                      compressed string. The program alse provides a   ;
-;                      letter frequency table and an option to repeat   ;
-;                      the process.                                     ;
-; Author:          Josiah Hamm                                          ;
+; Program Name:   Basic Calculator (basicCalc.asm)                      ;
+; Program Description:                                                  ;
+; Author:          Josiah Hamm   @bakedPotatoLord                       ;
 ; Course Number:   CSC2025X01 - Computer Architecture/Assembly Language ;
-; Date:            10/19/2024                                           ;
+; Date:            10/20/2024                                           ;
 ; Revisions:       None                                                 ;
-; Date Last Modified: 10/19/2024                                        ;
+; Date Last Modified: 10/20/2024                                        ;
 ; **********************************************************************;
 
 INCLUDE C:\Irvine\Irvine32.inc          ; Include Irvine32 library for basic I/O operations
@@ -32,7 +27,6 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
     10,13,
     "Enter your choice from the above options: ",0
 
-
     plus DB ' + ',0
     minus DB ' - ',0
     times DB ' * ',0
@@ -44,16 +38,19 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
     dividerDisplay DB "------------------------------------",0
 
-
 .code
 
 ; **********************************************************************;
 ; Main Procedure                                                        ;
-; Description:    ;
-; Input:                                                             ;
-; Output:                                 ;
-; Register Usage:                                                        ;
-; EAX - 
+; Description:   Asks for 2 integers, choice of operation, and calls    ;
+;                the appropriate procedure. to perform the operation.   ;
+; Input:  integers and choice of operation                              ;
+; Output:  Calls appropriate procedure for operation                    ;
+; Memory Usage: Prompt stings, integers                                 ;
+; Register Usage:                                                       ;
+; EAX - return value from ReadInt                                       ;
+; EDX - pointer to string for WriteString                               ;
+; OF - overflow flag to detect invalid input                            ;
 ; **********************************************************************;
 
 main PROC
@@ -108,7 +105,6 @@ main PROC
 
 main ENDP
 
-
 addition PROC uses eax edx
     mov eax, integer1
     call writeInt
@@ -148,7 +144,6 @@ subtraction PROC uses eax edx
     ret
 subtraction ENDP 
 
-
 multiplication PROC uses eax ebx edx
     mov eax, integer1
     call writeInt
@@ -185,9 +180,11 @@ division PROC uses eax ebx ecx edx
     call writeString
 
     xor edx, edx
+    xor ecx, ecx
     mov eax, integer1
+    cdq ; magic sign extension
     mov ebx, integer2
-    div ebx
+    idiv ebx
     call writeInt
     push edx
 
