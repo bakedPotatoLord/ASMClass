@@ -1,0 +1,177 @@
+; **********************************************************************;
+; Program Name:   Basic Calculator (basicCalc.asm)                      ;
+; Program Description: This program performs basic arithmetic operations;
+;                      on two 16-bit integers, including addition,      ;
+;                      subtraction, multiplication, and division.       ;
+; Author:          Josiah Hamm   @bakedPotatoLord                       ;
+; Course Number:   CSC2025X01 - Computer Architecture/Assembly Language ;
+; Date:            10/20/2024                                           ;
+; Revisions:       None                                                 ;
+; Date Last Modified: 10/20/2024                                        ;
+; **********************************************************************;
+
+
+.386                              ; Specify 32-bit code
+.model flat,stdcall                ; Flat memory model with standard calling conventions
+.stack 4096                        ; Allocate 4 KB of stack space
+ExitProcess proto,dwExitCode:dword ; Prototype for ExitProcess from Windows API
+
+
+INCLUDE C:\Irvine\Irvine32.inc          ; Include Irvine32 library for basic I/O operations
+INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
+
+.data
+
+    optionsDisplay DB "(1) Decimal",10,13,
+    "(2) Hexadecimal",10,13,
+    "(3) Binary",10,13,
+    "(4) Exit",10,13,
+    10,13,
+    "Enter your choice from the above options: ",0
+
+    decimalPrompt DB "please enter a 32-bit Decimal integer: ",0
+
+    hexPrompt DB "please enter a 32-bit Hexadecimal integer: ",0
+
+    binaryString DB 32 DUP(0) ,0
+
+    binaryPrompt DB "please enter a 32-bit Binary integer: ",0
+   
+    invalidInputDisplay DB "Invalid input. Please try again.",0 ; Display string for invalid input
+
+    dividerDisplay DB "------------------------------------",0 ; Divider line for clarity
+
+.code
+
+; **********************************************************************;
+; Main Procedure                                                        ;
+; Description: 
+; Output:      
+; Register Usage:                                                       ;
+; EAX -             ;
+; EDX -                             ;
+; **********************************************************************;
+
+main PROC
+    start:
+        lea edx, optionsDisplay
+        call WriteString
+
+        call readChar
+        call Crlf
+        call Crlf
+
+        .IF(al == '1')
+            lea edx, decimalPrompt
+            call WriteString
+
+            call readDec
+            jc invalidnumber
+        .ELSEIF(al == '2')
+            lea edx, hexPrompt
+            call WriteString
+            call readHex
+        .ELSEIF(al == '3')
+            lea edx, binaryPrompt
+            call WriteString
+            call readBin
+            
+
+        .ELSEIF(al == '4')
+    invoke ExitProcess, 0 
+        .ELSE
+            call invalidInput
+            jmp start
+        .ENDIF
+    jmp start
+    
+    invalidnumber:
+        call invalidInput
+        jmp start
+                   
+main ENDP
+
+
+readBin PROC uses eax ebx ecx edx
+
+    lea edx, binaryString
+    mov ecx, edx
+    add ecx, SIZEOF binaryString
+    sub ecx, 1
+    .WHILE(ecx > edx) ; while not at end of string
+        mov al, 0
+        mov [ecx], al ; clear string value
+        dec ecx
+    .ENDW
+
+
+    mov edx, offset binaryString
+    mov ecx, 32
+    call readString
+
+
+    mov ecx, edx ; ecx holds beginning of string
+    add edx, eax ; edx holds end of string
+    dec edx ; edx points to last character
+
+    xor eax, eax ; clear eax, it will be the accumulator
+    xor ebx, ebx ; clear ebx, it will be the current value
+
+    .WHILE(ecx < edx) ; while not at end of string
+        shl eax, 1 
+        mov bl, byte ptr [edx]
+        sub bl, '0'
+        add eax, ebx
+        dec edx
+    .ENDW
+
+
+    ret
+readBin ENDP    
+
+displayResults PROC
+
+
+    ret
+displayResults ENDP
+
+
+
+
+
+; **********************************************************************;
+; Invalid Input Procedure                                               ;
+; Description: This procedure displays an invalid input message and     ;
+;              resets the menu.                                         ;
+; Input:       None                                                     ;
+; Output:      Displays an error message.                               ;
+; Register Usage:                                                       ;
+; EDX - Used for passing string addresses                               ;
+; **********************************************************************;
+
+invalidInput PROC uses edx
+    lea edx, invalidInputDisplay             ; Load address of invalid input string
+    call WriteString                         ; Display error message
+    call Crlf                                ; Print new line
+    call divider                             ; Display divider for clarity
+    ret
+invalidInput ENDP
+
+; **********************************************************************;
+; Divider Procedure                                                     ;
+; Description: This procedure displays a divider line for formatting.   ;
+; Input:       None                                                     ;
+; Output:      Displays a divider line.                                 ;
+; Register Usage:                                                       ;
+; EDX - Used for passing string addresses                               ;
+; **********************************************************************;
+
+divider PROC uses edx
+    lea edx, dividerDisplay                  ; Load address of divider string
+    call WriteString                         ; Display divider line
+    call Crlf                                ; Print new line
+    ret
+divider ENDP
+
+
+END main
