@@ -36,6 +36,11 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
     binaryString DB 32 DUP(0) ,0
 
     binaryPrompt DB "please enter a 32-bit Binary integer: ",0
+
+    decimalDisplay DB "Decimal Value: ",0
+    hexDisplay DB "Hexadecimal Value: ",0
+    binaryDisplay DB "Binary Value: ",0
+
    
     invalidInputDisplay DB "Invalid input. Please try again.",0 ; Display string for invalid input
 
@@ -62,11 +67,12 @@ main PROC
         call Crlf
 
         .IF(al == '1')
-            lea edx, decimalPrompt
-            call WriteString
+            prompt1:
+                lea edx, decimalPrompt
+                call WriteString
 
-            call readDec
-            jc invalidnumber
+                call readDec
+                jc invalidnumber
         .ELSEIF(al == '2')
             lea edx, hexPrompt
             call WriteString
@@ -83,16 +89,21 @@ main PROC
             call invalidInput
             jmp start
         .ENDIF
+    call displayResults
     jmp start
     
-    invalidnumber:
+    invalidnumber1:
         call invalidInput
-        jmp start
+        jmp prompt1
+
+    invalidnumber2:
+        call invalidInput
+        jmp prompt2
                    
 main ENDP
 
-
-readBin PROC uses eax ebx ecx edx
+;leaves value in eax
+readBin PROC uses  ebx ecx edx
 
     lea edx, binaryString
     mov ecx, edx
@@ -117,20 +128,41 @@ readBin PROC uses eax ebx ecx edx
     xor eax, eax ; clear eax, it will be the accumulator
     xor ebx, ebx ; clear ebx, it will be the current value
 
-    .WHILE(ecx < edx) ; while not at end of string
+    .WHILE(ecx <= edx) ; while not at end of string
         shl eax, 1 
-        mov bl, byte ptr [edx]
+        mov bl, byte ptr [ecx]
         sub bl, '0'
         add eax, ebx
-        dec edx
+        inc ecx
     .ENDW
 
 
     ret
 readBin ENDP    
 
+
+;takes number in eax
 displayResults PROC
 
+    call Crlf
+    call Crlf
+
+    lea edx, decimalDisplay
+    call WriteString
+    call WriteInt
+    call Crlf
+
+    lea edx, hexDisplay
+    call WriteString
+    call WriteHex
+    call Crlf
+
+    lea edx, binaryDisplay
+    call WriteString
+    call WriteBin
+    call Crlf
+
+    call divider
 
     ret
 displayResults ENDP
