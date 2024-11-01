@@ -29,13 +29,13 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
     10,13,
     "Enter your choice from the above options: ",0
 
-    decimalPrompt DB "please enter a 32-bit Decimal integer: ",0
+    decimalPrompt DB "Please enter a 32-bit Decimal integer: ",0
 
-    hexPrompt DB "please enter a 32-bit Hexadecimal integer: ",0
+    hexPrompt DB "Please enter a 32-bit Hexadecimal integer: ",0
 
     binaryString DB 32 DUP(0) ,0
 
-    binaryPrompt DB "please enter a 32-bit Binary integer: ",0
+    binaryPrompt DB "Please enter a 32-bit Binary integer: ",0
 
     decimalDisplay DB "Decimal Value: ",0
     hexDisplay DB "Hexadecimal Value: ",0
@@ -63,6 +63,7 @@ main PROC
         call WriteString
 
         call readChar
+        call writeChar
         call Crlf
         call Crlf
 
@@ -71,18 +72,18 @@ main PROC
                 lea edx, decimalPrompt
                 call WriteString
 
-                call readDec
-                jc invalidnumber
+                call ReadInt
+                jc invalidnumber1
         .ELSEIF(al == '2')
-            lea edx, hexPrompt
-            call WriteString
-            call readHex
+            prompt2:
+                lea edx, hexPrompt
+                call WriteString
+                call readHex
         .ELSEIF(al == '3')
-            lea edx, binaryPrompt
-            call WriteString
-            call readBin
-            
-
+            prompt3:
+                lea edx, binaryPrompt
+                call WriteString
+                call readBin
         .ELSEIF(al == '4')
     invoke ExitProcess, 0 
         .ELSE
@@ -100,6 +101,10 @@ main PROC
         call invalidInput
         jmp prompt2
                    
+    invalidnumber3:
+        call invalidInput
+        jmp prompt3
+
 main ENDP
 
 ;leaves value in eax
@@ -129,10 +134,12 @@ readBin PROC uses  ebx ecx edx
     xor ebx, ebx ; clear ebx, it will be the current value
 
     .WHILE(ecx <= edx) ; while not at end of string
-        shl eax, 1 
         mov bl, byte ptr [ecx]
-        sub bl, '0'
-        add eax, ebx
+        .IF(bl == '1' || bl == '0') ; if character is 1 or 0
+            shl eax, 1 
+            sub bl, '0'
+            add eax, ebx
+        .ENDIF
         inc ecx
     .ENDW
 
