@@ -29,13 +29,13 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
     10,13,
     "Enter your choice from the above options: ",0
 
-    decimalPrompt DB "Please enter a 32-bit Decimal integer: ",0
+    decimalPrompt DB "Please enter a 32-bit Decimal integer with no spaces or non-decimal characters: ",0
 
-    hexPrompt DB "Please enter a 32-bit Hexadecimal integer: ",0
+    hexPrompt DB "Please enter a 32-bit Hexadecimal integer with no spaces or non-hex characters: ",0
 
-    binaryString DB 32 DUP(0) ,0
+    binaryString DB 34 DUP(0) ,0
 
-    binaryPrompt DB "Please enter a 32-bit Binary integer: ",0
+    binaryPrompt DB "Please enter a 32-bit Binary integer with no spaces or non-binary characters: ",0
 
     decimalDisplay DB "Decimal Value: ",0
     hexDisplay DB "Hexadecimal Value: ",0
@@ -50,11 +50,12 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
 ; **********************************************************************;
 ; Main Procedure                                                        ;
-; Description: 
-; Output:      
+; Description: serves as the main loop and entry point for the program  ;
+; Input:  reads option selection and number input from user             ;
+; Output:  outputs converted number in decimal, hex, and binary         ;    
 ; Register Usage:                                                       ;
-; EAX -             ;
-; EDX -                             ;
+; EAX - used for storing function return values                         ;
+; EDX - used for passing string addresses to writeString                ;
 ; **********************************************************************;
 
 main PROC
@@ -71,9 +72,10 @@ main PROC
             prompt1:
                 lea edx, decimalPrompt
                 call WriteString
-
                 call ReadInt
-                jc invalidnumber1
+                .IF( eax == 0)
+                    jmp invalidnumber1
+                .ENDIF
         .ELSEIF(al == '2')
             prompt2:
                 lea edx, hexPrompt
@@ -84,6 +86,9 @@ main PROC
                 lea edx, binaryPrompt
                 call WriteString
                 call readBin
+                .IF(eax == 0)
+                    jmp invalidnumber3
+                .ENDIF
         .ELSEIF(al == '4')
     invoke ExitProcess, 0 
         .ELSE
@@ -122,7 +127,7 @@ readBin PROC uses  ebx ecx edx
 
 
     mov edx, offset binaryString
-    mov ecx, 32
+    mov ecx, 33
     call readString
 
 
@@ -139,14 +144,16 @@ readBin PROC uses  ebx ecx edx
             shl eax, 1 
             sub bl, '0'
             add eax, ebx
+        .ELSE
+            xor eax, eax
+            ret 
         .ENDIF
         inc ecx
     .ENDW
 
 
     ret
-readBin ENDP    
-
+readBin ENDP  
 
 ;takes number in eax
 displayResults PROC
