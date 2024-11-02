@@ -18,20 +18,20 @@ INCLUDE C:\Irvine\Irvine32.inc          ; Include Irvine32 library for basic I/O
 INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
 .data
-    optionsDisplay DB "(1) Decimal",10,13,
-                    "(2) Hexadecimal",10,13,
-                    "(3) Binary",10,13,
-                    "(4) Exit",10,13,
-                    10,13,
-                    "Enter your choice from the above options: ",0
+    optionsDisplay DB "(1) Decimal",10,13,     ; Menu display for decimal option
+                    "(2) Hexadecimal",10,13,   ; Menu display for hexadecimal option
+                    "(3) Binary",10,13,        ; Menu display for binary option
+                    "(4) Exit",10,13,          ; Menu display for exit option
+                    10,13,                     ; New lines for spacing
+                    "Enter your choice from the above options: ",0 ; Prompt user input
 
-    decimalPrompt DB "Please enter a 32-bit Decimal integer with no spaces or non-decimal characters: ",0
-    hexPrompt DB "Please enter a 32-bit Hexadecimal integer with no spaces or non-hex characters: ",0
-    binaryString DB 34 DUP(0),0  ; Buffer for binary input string
-    binaryPrompt DB "Please enter a 32-bit Binary integer with no spaces or non-binary characters: ",0
-    decimalDisplay DB "Decimal Value: ",0
-    hexDisplay DB "Hexadecimal Value: ",0
-    binaryDisplay DB "Binary Value: ",0
+    decimalPrompt DB "Please enter a 32-bit Decimal integer with no spaces or non-decimal characters: ",0 ; Prompt message for decimal entry
+    hexPrompt DB "Please enter a 32-bit Hexadecimal integer with no spaces or non-hex characters: ",0 ; Prompt message for hexadecimal entry
+    binaryString DB 34 DUP(0),0             ; Buffer for binary input string
+    binaryPrompt DB "Please enter a 32-bit Binary integer with no spaces or non-binary characters: ",0 ; Prompt message for binary entry
+    decimalDisplay DB "Decimal Value: ",0   ; Label for displaying decimal output
+    hexDisplay DB "Hexadecimal Value: ",0   ; Label for displaying hexadecimal output
+    binaryDisplay DB "Binary Value: ",0     ; Label for displaying binary output
     invalidInputDisplay DB "Invalid input. Please try again.",0 ; Display string for invalid input
     dividerDisplay DB "------------------------------------",0  ; Divider line for clarity
 
@@ -61,49 +61,49 @@ main PROC
 
         .IF(al == '1')                      ; If user chooses (1) Decimal
             prompt1:
-                lea edx, decimalPrompt      ; Prompt for decimal input
-                call WriteString
+                lea edx, decimalPrompt      ; Load prompt message for decimal input
+                call WriteString            ; Display decimal prompt message
                 call ReadInt                ; Read 32-bit integer into EAX
-                .IF(eax == 0)
-                    jmp invalidnumber1      ; Jump to error if input is invalid
+                .IF(eax == 0)               ; Check if entered value is invalid (zero)
+                    jmp invalidnumber1      ; Jump to error handler if invalid
                 .ENDIF
         .ELSEIF(al == '2')                  ; If user chooses (2) Hexadecimal
             prompt2:
-                lea edx, hexPrompt          ; Prompt for hexadecimal input
-                call WriteString
+                lea edx, hexPrompt          ; Load prompt message for hexadecimal input
+                call WriteString            ; Display hexadecimal prompt
                 call readHex                ; Read hex input and convert to integer
-                .IF(eax == 0)
-                    jmp invalidnumber2      ; Jump to error if input is invalid
+                .IF(eax == 0)               ; Check if input is invalid
+                    jmp invalidnumber2      ; Jump to error handler if invalid
                 .ENDIF
         .ELSEIF(al == '3')                  ; If user chooses (3) Binary
             prompt3:
-                lea edx, binaryPrompt       ; Prompt for binary input
-                call WriteString
+                lea edx, binaryPrompt       ; Load prompt message for binary input
+                call WriteString            ; Display binary prompt
                 call readBin                ; Read binary input, convert to integer
-                .IF(eax == 0)
-                    jmp invalidnumber3      ; Jump to error if input is invalid
+                .IF(eax == 0)               ; Check if input is invalid
+                    jmp invalidnumber3      ; Jump to error handler if invalid
                 .ENDIF
         .ELSEIF(al == '4')                  ; If user chooses (4) Exit
             invoke ExitProcess, 0           ; Exit program with code 0
-        .ELSE
-            call invalidInput               ; Call error handler for invalid menu choice
+        .ELSE                               ; For invalid menu input
+            call invalidInput               ; Call error handler for invalid choice
             jmp start                       ; Restart menu
         .ENDIF
 
-    call displayResults                     ; Display conversion results
+    call displayResults                     ; Display converted results
     jmp start                               ; Restart menu after displaying results
 
-    invalidnumber1:
+    invalidnumber1:                         ; Error handler for invalid input
         call invalidInput                   ; Display error and retry Decimal input
-        jmp prompt1
+        jmp prompt1                         ; Restart prompt
 
-    invalidnumber2:
+    invalidnumber2:                         ; Error handler for invalid input
         call invalidInput                   ; Display error and retry Hex input
-        jmp prompt2
+        jmp prompt2                         ; Restart prompt
 
-    invalidnumber3:
+    invalidnumber3:                         ; Error handler for invalid input
         call invalidInput                   ; Display error and retry Binary input
-        jmp prompt3
+        jmp prompt3                         ; Restart prompt
 
 main ENDP
 
@@ -125,9 +125,9 @@ readBin PROC uses ebx ecx edx
     add ecx, SIZEOF binaryString             ; ECX points to end of binaryString
     sub ecx, 1                               ; Adjust for zero-based indexing
     .WHILE(ecx > edx)                        ; Clear string values in buffer
-        mov al, 0
-        mov [ecx], al
-        dec ecx
+        mov al, 0                            ; Set byte to null character
+        mov [ecx], al                        ; Write null to current position
+        dec ecx                              ; Move backwards through buffer
     .ENDW
 
     mov edx, offset binaryString             ; Load beginning of binaryString
@@ -147,9 +147,9 @@ readBin PROC uses ebx ecx edx
             shl eax, 1                       ; Shift accumulator left by 1 bit
             sub bl, '0'                      ; Convert '1'/'0' to binary 1/0
             add eax, ebx                     ; Accumulate result
-        .ELSE
-            xor eax, eax                     ; Clear EAX if invalid input found
-            ret                              ; Return immediately
+        .ELSE                                ; If character is not valid
+            xor eax, eax                     ; Clear EAX for invalid input
+            ret                              ; Return from procedure
         .ENDIF
         inc ecx                              ; Move to next character
     .ENDW
@@ -173,19 +173,19 @@ displayResults PROC uses edx
     call Crlf
 
     lea edx, decimalDisplay                 ; Load decimal display prompt
-    call WriteString
+    call WriteString                        ; Display decimal label
     call WriteInt                           ; Display decimal value
-    call Crlf
+    call Crlf                               ; New line
 
     lea edx, hexDisplay                     ; Load hexadecimal display prompt
-    call WriteString
+    call WriteString                        ; Display hexadecimal label
     call WriteHex                           ; Display hexadecimal value
-    call Crlf
+    call Crlf                               ; New line
 
     lea edx, binaryDisplay                  ; Load binary display prompt
-    call WriteString
+    call WriteString                        ; Display binary label
     call WriteBin                           ; Display binary value
-    call Crlf
+    call Crlf                               ; New line
 
     call divider                            ; Print divider line
     ret
@@ -225,4 +225,4 @@ divider PROC uses edx
     ret
 divider ENDP
 
-END main
+END main                                    ; End of main procedure
