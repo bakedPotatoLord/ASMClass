@@ -124,31 +124,67 @@ main PROC
             jmp askprecisionPrompt
         .ENDIF
 
+        mov esi, eax ; store precision in esi
+
+        
+        call WriteChar
 
 
     outputRounded:
-        lea edx, roundedNumberDisplay
-        call WriteString
+        
     
         lea edx, numberInput
 
-        .while(byte ptr [edx] != '.')
+        xor eax, eax ; clear eax. it will be the accumulator.
+        xor ebx, ebx ; clear ebx it will temporarily hold the number value
+
+        .while(byte ptr [edx] != '.') ; iterate until decimal
+
+            mov bl, byte ptr [edx]
+            sub bl, '0' ; convert ascii to number
+
+            mov ecx, 10
+            mul ecx
+            add eax, ebx
+
+            inc edx
+        .endw
+
+        mov prepoint, eax
 
 
         mov al, byte ptr [edx]
         call WriteChar
 
 
-        inc edx
-        .endw
+        inc edx 
+        
+        xor eax, eax ; clear eax. it will be the accumulator.
+        xor ebx, ebx ; clear ebx it will temporarily hold the number value
+
+        
+
+        mov prepoint, eax
+
+
+        lea edx, roundedNumberDisplay
+        call WriteString
+
+        mov eax, prepoint
+        call WriteDec
+
+
+        mov al, "."
+        call writeChar
+
+        mov eax, postpoint
+        call WriteDec
 
         call Crlf
 
         call Crlf
 
 
-        call ReadFloat
-    
 
         JMP floatPrompt
 
