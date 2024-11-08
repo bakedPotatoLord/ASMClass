@@ -27,7 +27,9 @@ numberInput DB 101 DUP(0)
 
 packedBCD DB 10 DUP(0)
 
-testnum dd 0
+prepoint dd 0
+
+postpoint dd 0
 
 floatOutput dd 0
 
@@ -134,7 +136,7 @@ main PROC
         
 
 
-    outputRounded:
+    convertloops:
         
     
 
@@ -142,35 +144,37 @@ main PROC
             xor eax, eax ; Clear EAX - will be accumlator
             xor ebx, ebx ; Clear EBX - will be digit holder
 
-        convert_loop:
-            mov bl, byte ptr [esi]       ; Load character from string
-            inc esi                       ; Move to next character
-            cmp bl, '.'                    ; Check if end of first part
-            je done                      ; If null terminator, exit loop
+    prepointLoop:
+        mov bl, byte ptr [esi]       ; Load character from string
+        inc esi                       ; Move to next character
+        cmp bl, '.'                    ; Check if end of first part
+        je done                      ; If null terminator, exit loop
 
 
-            sub bl, '0'                  ; Convert ASCII to BCD (digit)
-            cmp bl, 9                    ; Ensure it's a valid decimal digit
-            ja convert_loop              ; Ignore invalid characters
+        sub bl, '0'                  
+        cmp bl, 9                    ; Ensure it's a valid decimal digit
+        ja prepointLoop              ; Ignore invalid characters
 
-            mov edx, 10
-            mul edx                       ; Multiply accumulator by 10
-            add eax,ebx                    ;
-
-
-            jmp convert_loop             ; Repeat for the next character
+        mov edx, 10
+        mul edx                       ; Multiply accumulator by 10
+        add eax,ebx                    ;
 
 
-        done:
-            finit                        ; Initialize FPU
-            mov testnum, eax
-            fild dword ptr testnum              
-
-            call writeFloat
-            ;fstp dword ptr floatOutput
+        jmp prepointLoop             ; Repeat for the next character
 
 
-        JMP floatPrompt
+
+    done:
+        mov prepoint, eax
+        finit                        ; Initialize FPU
+        
+        fild dword ptr prepoint              
+
+        call writeFloat
+        call Crlf
+        call divider
+
+    JMP floatPrompt
 
     invoke ExitProcess, 0           ; Exit program with code 0
     
