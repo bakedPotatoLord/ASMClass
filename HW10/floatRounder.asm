@@ -5,7 +5,7 @@
 ;                      and decimal notation.                            ;
 ; Author:          Josiah Hamm   @bakedPotatoLord                       ;
 ; Course Number:   CSC2025X01 - Computer Architecture/Assembly Language ;
-; Date:            10/20/2024                                           ;
+; Date:            11/08/2024                                           ;
 ; **********************************************************************;
 
 .386                              ; Specify 32-bit code
