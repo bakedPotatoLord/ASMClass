@@ -44,6 +44,8 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 ;              precision.                                               ;
 ; Output:      Rounded float displayed in both scientific and decimal   ;
 ;              formats.                                                 ;
+; Memory Usage: Uses all the values in the .data section for storage,   ;
+;               and passing values to and from the FPU                  ;
 ; Register Usage:                                                       ;
 ; EAX - used as accumulator and as parameter for functions              ;
 ; EBX - used to store digits of input float                             ;
