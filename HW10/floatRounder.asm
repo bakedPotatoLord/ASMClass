@@ -25,13 +25,17 @@ precisionPrompt DB "Enter the number of decimal places to round to (1-4): ",0
 
 numberInput DB 101 DUP(0)
 
+packedBCD DB 10 DUP(0)
+
+testnum dd 0
+
+floatOutput dd 0
+
 numberDisplay DB "The number you entered is: ",0
 
 roundedNumberDisplay DB "The rounded number is: ",0
 
-prepoint DD 0
 
-postpoint DD 0
 
 invalidInputDisplay DB "Invalid input. Please try again.",0
 
@@ -127,63 +131,43 @@ main PROC
         mov esi, eax ; store precision in esi
 
         
-        call WriteChar
+        
 
 
     outputRounded:
         
     
-        lea edx, numberInput
 
-        xor eax, eax ; clear eax. it will be the accumulator.
-        xor ebx, ebx ; clear ebx it will temporarily hold the number value
+            lea esi, offset numberInput  ; Load address of ASCII string
+            xor eax, eax ; Clear EAX - will be accumlator
+            xor ebx, ebx ; Clear EBX - will be digit holder
 
-        .while(byte ptr [edx] != '.') ; iterate until decimal
-
-            mov bl, byte ptr [edx]
-            sub bl, '0' ; convert ascii to number
-
-            mov ecx, 10
-            mul ecx
-            add eax, ebx
-
-            inc edx
-        .endw
-
-        mov prepoint, eax
+        convert_loop:
+            mov bl, byte ptr [esi]       ; Load character from string
+            inc esi                       ; Move to next character
+            cmp bl, '.'                    ; Check if end of first part
+            je done                      ; If null terminator, exit loop
 
 
-        mov al, byte ptr [edx]
-        call WriteChar
+            sub bl, '0'                  ; Convert ASCII to BCD (digit)
+            cmp bl, 9                    ; Ensure it's a valid decimal digit
+            ja convert_loop              ; Ignore invalid characters
+
+            mov edx, 10
+            mul edx                       ; Multiply accumulator by 10
+            add eax,ebx                    ;
 
 
-        inc edx 
-        
-        xor eax, eax ; clear eax. it will be the accumulator.
-        xor ebx, ebx ; clear ebx it will temporarily hold the number value
-
-        
-
-        mov prepoint, eax
+            jmp convert_loop             ; Repeat for the next character
 
 
-        lea edx, roundedNumberDisplay
-        call WriteString
+        done:
+            finit                        ; Initialize FPU
+            mov testnum, eax
+            fild dword ptr testnum              
 
-        mov eax, prepoint
-        call WriteDec
-
-
-        mov al, "."
-        call writeChar
-
-        mov eax, postpoint
-        call WriteDec
-
-        call Crlf
-
-        call Crlf
-
+            call writeFloat
+            ;fstp dword ptr floatOutput
 
 
         JMP floatPrompt
