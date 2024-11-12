@@ -76,8 +76,10 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
     letterPrompt DB "Guess a letter: ",0
 
-    feedback DB "letters guessed:",0
+    letterFound DB "Congratulations! That letter is in the word.",0
+    letterNotFound DB "Sorry, that letter is not in the word.",0
 
+    triedLettersDisplay DB "Tried letters: ",0
 
     invalidInputDisplay DB "Invalid input. Please try again.",0
 
@@ -153,7 +155,16 @@ main PROC
         .IF(al >= "A" && al <= "Z")
             call checkLetter
 
-
+            .if(ZERO?) ; if valid
+                lea edx, letterFound
+                call WriteString
+                call Crlf
+            .else ; if invalid
+                inc ecx
+                lea edx, letterNotFound
+                call WriteString
+                call Crlf
+            .endif
 
         .ELSE
             call invalidInput
@@ -162,6 +173,19 @@ main PROC
             jmp gameLoop
         .ENDIF
 
+        
+        lea edx, triedLettersDisplay
+        call WriteString
+        call Crlf
+        call Crlf
+
+        lea edx, allLetters
+        call WriteString
+        call Crlf
+
+
+
+        
     .ENDW
 
 
@@ -219,12 +243,30 @@ clearVars PROC uses ecx esi edi
     ret
 clearVars ENDP
 
-checkLetter PROC uses eax esi 
-    ; takes ASCII char in AL
+checkLetter PROC uses eax ebx esi 
+    ; takes uppercase ASCII char in AL
     ; sets ZF to 1 if char is valid, and sets ZF to 0 if invalid
     ; sets letter as tried in triedLetters regardless
 
     lea esi, chosenWord
+
+    xor ebx, ebx ; ebx will be letter index
+    sub al, "A"
+    mov bl, al
+
+    lea edi, triedLetters
+
+    mov byte ptr [edi+ebx], 1
+
+    lea edi, validLetters
+
+    xor ebx, ebx
+
+    .IF(byte ptr [edi+ebx] == 1)
+        cmp ebx,0; set ZF= 1
+    .ELSE
+        cmp ebx,1; set ZF = 0
+    .ENDIF
     
 
     ret
@@ -253,6 +295,14 @@ loadValidLetters PROC uses esi edi eax ebx ecx edx
     ret
 loadValidLetters ENDP
 
+
+displayTriedLetters: PROC uses edx
+
+    lea esi, triedLetters
+    
+
+    ret
+displayTriedLetters ENDP
 
 invalidInput PROC uses edx
     lea edx, invalidInputDisplay             ; Load invalid input message
