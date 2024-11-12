@@ -115,7 +115,9 @@ main PROC
         .ELSEIF(al == 'n' || al == 'N') ; If user input is 'n' or 'N'
             invoke ExitProcess, 0       ; Exit program with exit code 0
         .ELSE                           ; If input is invalid
-            call invalidInput           ; Display invalid input message
+            lea edx, invalidInputDisplay  ; Load address of invalid input message
+            call WriteString              ; Display invalid input message
+            call Crlf                     ; Move to a new line
             jmp askPlayAgain            ; Repeat play-again prompt
         .ENDIF
 
