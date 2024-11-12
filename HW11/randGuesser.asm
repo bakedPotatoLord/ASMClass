@@ -32,16 +32,15 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
 ; **********************************************************************;
 ; Main Procedure                                                        ;
-; Description: Main procedure for handling user input, rounding float,  ;
-;              and displaying output in scientific and decimal formats. ;
-; Input:       User inputs a floating-point number and rounding         ;
-;              precision.                                               ;
-; Output:      Rounded float displayed in both scientific and decimal   ;
-;              formats.                                                 ;
-; Memory Usage: Uses all the values in the .data section for storage,   ;
-;               and passing values to and from the FPU                  ;
+; Description:  ;
+; Input:                                                     ;
+; Output:                                                       ;
+; Memory Usage:                 ;
 ; Register Usage:                                                       ;
-; EAX -
+; EAX - used for passing to and from functions
+; ECX - holds the random number
+; EDX - used to pass string to WriteString function
+; ESI - holds the number of tries remaining
 ; **********************************************************************;
 
 main PROC
@@ -118,21 +117,6 @@ main PROC
 
 main ENDP
 
-
-; **********************************************************************;
-; Invalid Input Procedure                                               ;
-; Description: This procedure displays an invalid input message and     ;
-;              resets the menu.                                         ;
-; Input:       None                                                     ;
-; Output:      Displays an error message.                               ;
-; Register Usage:                                                       ;
-; EDX - Used for passing string addresses                               ;
-; **********************************************************************;
-
-invalidInput PROC uses edx
-    
-    ret
-invalidInput ENDP
 
 ; **********************************************************************;
 ; Divider Procedure                                                     ;
