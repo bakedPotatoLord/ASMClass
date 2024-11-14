@@ -21,55 +21,56 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
     allwords DB "diadem","indigo","sphere","schism","avatar","guitar","sulfur","dengue","walrus","lizard"
 
-    chosenWord DB 0 DUP(6)
+    chosenWord DB 6 DUP(0)
 
-    allLetters DB "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    triedLetters DB 0 DUP(26)
+    allLetters DB "ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
 
-    validLetters DB 0 DUP(26)
+    triedLetters DB 26 DUP(0)
+
+    validLetters DB 26 DUP(0)
 
 
     hangman0 DB "+----+---",13,10,
                 "|        ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,
-                "|        ",13,10,0,
+                "|        ",13,10,0
 
     hangman1 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,
-                "|        ",13,10,0,
+                "|        ",13,10,0
 
     hangman2 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|    I   ",13,10,
                 "|        ",13,10,
-                "|        ",13,10,0,
+                "|        ",13,10,0
 
     hangman3 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I   ",13,10,
                 "|        ",13,10,
-                "|        ",13,10,0,
+                "|        ",13,10,0
 
     hangman4 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I\  ",13,10,
                 "|        ",13,10,
-                "|        ",13,10,0,
+                "|        ",13,10,0
 
     hangman5 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I\  ",13,10,
                 "|   /    ",13,10,
-                "|        ",13,10,0,
+                "|        ",13,10,0
 
     hangman6 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I\  ",13,10,
                 "|   / \  ",13,10,
-                "|        ",13,10,0,
+                "|        ",13,10,0
 
 
     welcomeMessage DB "Welcome to Hangman!",0
@@ -174,15 +175,7 @@ main PROC
         .ENDIF
 
         
-        lea edx, triedLettersDisplay
-        call WriteString
-        call Crlf
-        call Crlf
-
-        lea edx, allLetters
-        call WriteString
-        call Crlf
-
+        call displayTriedLetters
 
 
         
@@ -230,8 +223,8 @@ displayHangman PROC uses edx
 displayHangman ENDP
 
 clearVars PROC uses ecx esi edi
-    lea esi, chosenWord
     lea edi, triedLetters
+    lea esi, validLetters
 
     xor ecx, ecx
     .WHILE(ecx < 26)
@@ -243,12 +236,11 @@ clearVars PROC uses ecx esi edi
     ret
 clearVars ENDP
 
-checkLetter PROC uses eax ebx esi 
+checkLetter PROC uses eax ebx esi edi
     ; takes uppercase ASCII char in AL
     ; sets ZF to 1 if char is valid, and sets ZF to 0 if invalid
     ; sets letter as tried in triedLetters regardless
 
-    lea esi, chosenWord
 
     xor ebx, ebx ; ebx will be letter index
     sub al, "A"
@@ -258,7 +250,7 @@ checkLetter PROC uses eax ebx esi
 
     mov byte ptr [edi+ebx], 1
 
-    lea edi, validLetters
+    lea esi, validLetters
 
     xor ebx, ebx
 
@@ -296,10 +288,33 @@ loadValidLetters PROC uses esi edi eax ebx ecx edx
 loadValidLetters ENDP
 
 
-displayTriedLetters: PROC uses edx
+displayTriedLetters PROC uses eax ebx edx ecx edi esi
 
+    mov ebx, OFFSET allLetters
+
+    lea edx, triedLettersDisplay
     lea esi, triedLetters
+
+    call WriteString
+
+    xor ecx, ecx
+
     
+
+
+    .while(ecx < 26)
+
+        .IF( byte ptr [esi+ecx] == 1)
+            mov al, byte ptr [edi+ecx]
+            call WriteChar
+            mov al, ' '
+            call WriteChar
+        .ENDIF
+
+        inc ecx
+    .endw
+
+    call Crlf
 
     ret
 displayTriedLetters ENDP
