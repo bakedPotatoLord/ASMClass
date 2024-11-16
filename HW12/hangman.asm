@@ -134,6 +134,8 @@ main PROC
 
     xor ecx, ecx ; ecx will be attempt counter
 
+    xor eax, eax
+
     gameLoop:
 
     .WHILE(ecx < 6)
@@ -156,7 +158,7 @@ main PROC
         .IF(al >= "A" && al <= "Z")
             call checkLetter
 
-            .if(ZERO?) ; if valid
+            .if(al == 1) ; if valid
                 lea edx, letterFound
                 call WriteString
                 call Crlf
@@ -236,31 +238,21 @@ clearVars PROC uses ecx esi edi
     ret
 clearVars ENDP
 
-checkLetter PROC uses eax ebx esi edi
+checkLetter PROC uses esi edi
     ; takes uppercase ASCII char in AL
-    ; sets ZF to 1 if char is valid, and sets ZF to 0 if invalid
+    ; sets al 1 if char is valid, and sets al to 0 if invalid
     ; sets letter as tried in triedLetters regardless
-
-
-    xor ebx, ebx ; ebx will be letter index
     sub al, "A"
-    mov bl, al
-
+    mov ah, 0
     lea edi, triedLetters
-
-    mov byte ptr [edi+ebx], 1
-
+    mov byte ptr [edi+eax], 1
     lea esi, validLetters
 
-    xor ebx, ebx
-
-    .IF(byte ptr [edi+ebx] == 1)
-        cmp ebx,0; set ZF= 1
+    .IF(byte ptr [esi+eax] == 1)
+        mov eax, 1
     .ELSE
-        cmp ebx,1; set ZF = 0
+        mov eax, 0
     .ENDIF
-    
-
     ret
 checkLetter ENDP
 
@@ -269,7 +261,6 @@ loadValidLetters PROC uses esi edi eax ebx ecx edx
     lea esi, chosenWord
 
     xor ecx, ecx
-    
     xor eax, eax
 
     .WHILE(ecx < 6)
@@ -289,8 +280,7 @@ loadValidLetters ENDP
 
 
 displayTriedLetters PROC uses eax ebx edx ecx edi esi
-
-    mov ebx, OFFSET allLetters
+    lea edi, allLetters
 
     lea edx, triedLettersDisplay
     lea esi, triedLetters
@@ -298,10 +288,6 @@ displayTriedLetters PROC uses eax ebx edx ecx edi esi
     call WriteString
 
     xor ecx, ecx
-
-    
-
-
     .while(ecx < 26)
 
         .IF( byte ptr [esi+ecx] == 1)
@@ -313,9 +299,7 @@ displayTriedLetters PROC uses eax ebx edx ecx edi esi
 
         inc ecx
     .endw
-
     call Crlf
-
     ret
 displayTriedLetters ENDP
 
