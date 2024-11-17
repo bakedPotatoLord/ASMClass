@@ -73,261 +73,362 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
 ; **********************************************************************;
 ; Main Procedure                                                        ;
-; Description: Handles game flow, including guessing logic, feedback, 
-;              and play-again prompt.
-; Input: None                                                            ;
-; Output: Displays messages and takes input for guesses and play-again   ;
-; Memory Usage: Stack is used for local variables                        ;
+; Description: This procedure implements a word-guessing game. It initializes the game state, 
+;              processes user input, updates the game state, and determines the outcome.
+; Input: None                                                           ;
+; Output: None                                                          ;
+; Memory Usage: Modifies game state variables such as `chosenWord` and 
+;               display buffers.                                        ;
 ; Register Usage:                                                       ;
-; EAX - used for passing to and from functions                          ;
-; ECX - holds the random number                                         ;
-; EDX - used to pass string to WriteString function                     ;
-; ESI - holds the number of tries remaining                             ;
+; EAX - General purpose; holds various values such as word positions    ;
+; EBX - General purpose; holds various values such as word positions    ;
+; ECX - Counter for loops (e.g., attempts, word length)                 ;
+; EDX - Address for strings passed to output functions                  ;
+; ESI - Pointer to the chosen word buffer                               ;
 ; **********************************************************************;
 main PROC
     start:                           ; Start of the game loop
 
-    mov eax, 10
-    call RandomRange ; get random 0-9
-    mov ebx, 6
-    mul ebx
-    lea ebx, allWords
-    add eax, ebx ;eax holds start of word
+    mov eax, 10                      ; Load 10 into EAX for the random range
+    call RandomRange                 ; Generate a random number between 0 and 9
+    mov ebx, 6                       ; Load multiplier (6) into EBX
+    mul ebx                          ; Multiply random number by 6
+    lea ebx, allWords                ; Load address of word list into EBX
+    add eax, ebx                     ; Add offset to get the start of the chosen word
 
-    call clearVars
-    
-    lea esi, chosenWord
-    xor ecx, ecx ; ecx will be counter
+    call clearVars                   ; Reset game variables
+
+    lea esi, chosenWord              ; Load address of `chosenWord` into ESI
+    xor ecx, ecx                     ; Clear ECX (loop counter for copying word)
     .WHILE(ecx < 6)
-        mov dl, byte ptr [eax+ecx]
-
-        mov byte ptr [esi+ecx] , dl
-        inc ecx
+        mov dl, byte ptr [eax+ecx]   ; Load the character at [eax+ecx] into DL
+        mov byte ptr [esi+ecx], dl   ; Copy character to `chosenWord` buffer
+        inc ecx                      ; Increment loop counter
     .endw
 
-    call loadValidLetters
+    call loadValidLetters            ; Initialize valid letters for the game
 
-    lea edx, welcomeMessage
-    call WriteString
-    call Crlf
+    lea edx, welcomeMessage          ; Load address of welcome message into EDX
+    call WriteString                 ; Display welcome message
+    call Crlf                        ; Print a newline
 
-    xor ecx, ecx ; ecx will be attempt counter
-    xor eax, eax
-    gameLoop:
+    xor ecx, ecx                     ; Clear ECX (attempt counter)
+    xor eax, eax                     ; Clear EAX
+    gameLoop:                        ; Main game loop
     .WHILE(ecx < 6)
 
-        lea edx, letterPrompt
-        call WriteString
-        call ReadChar
+        lea edx, letterPrompt        ; Load address of letter prompt into EDX
+        call WriteString             ; Display the prompt
+        call ReadChar                ; Read a character from the user
 
-        call writeChar
-        call Crlf
+        call writeChar               ; Echo the character
+        call Crlf                    ; Print two newlines
         call Crlf
         
-        charProcessing:
-        .IF( al >= "a" && al <= "z")
-            sub al, 32 ; convert to uppercase
+        charProcessing:              ; Process the input character
+        .IF(al >= "a" && al <= "z")  ; Check if the character is lowercase
+            sub al, 32               ; Convert to uppercase
         .ENDIF
-        .IF(al >= "A" && al <= "Z")
-            call checkLetter
-            .if(al == 1) ; if valid
-                lea edx, letterFound
-                call WriteString
-                call Crlf
-            .else ; if invalid
-                inc ecx
-                lea edx, letterNotFound
-                call WriteString
-                call Crlf
+        .IF(al >= "A" && al <= "Z")  ; Check if the character is uppercase
+            call checkLetter         ; Check if the character is in the word
+            .if(al == 1)             ; If the letter is valid
+                lea edx, letterFound ; Load success message address into EDX
+                call WriteString     ; Display success message
+                call Crlf            ; Print a newline
+            .else                    ; If the letter is invalid
+                inc ecx              ; Increment attempt counter
+                lea edx, letterNotFound ; Load failure message address
+                call WriteString     ; Display failure message
+                call Crlf            ; Print a newline
             .endif
-        .ELSE
-            call invalidInput
+        .ELSE                        ; If input is not a valid letter
+            call invalidInput        ; Display invalid input message
+            call Crlf                ; Print two newlines
             call Crlf
-            call Crlf
-            jmp gameLoop
+            jmp gameLoop             ; Restart the game loop
         .ENDIF
 
-        call displayWordSoFar
-        push eax
-        call Crlf
-        call displayTriedLetters
-        call Crlf
-        mov eax, ecx
-        call displayHangman
-        call Crlf
-        pop eax
-        .if(al == 0) ; if word complete
-            jmp gameWon
+        call displayWordSoFar        ; Display the current state of the guessed word
+        push eax                     ; Save EAX value on the stack
+        call Crlf                    ; Print a newline
+        call displayTriedLetters     ; Display tried letters
+        call Crlf                    ; Print a newline
+        mov eax, ecx                 ; Load attempt counter into EAX
+        call displayHangman          ; Display hangman based on attempts
+        call Crlf                    ; Print a newline
+        pop eax                      ; Restore EAX from the stack
+        .if(al == 0)                 ; Check if the word is complete
+            jmp gameWon              ; Jump to win state
         .endif
     .ENDW
 
-    JMP gameLost
+    JMP gameLost                     ; If all attempts are used, jump to loss state
 
-        gameWon:
-        call divider
-        lea edx, winnerDisplay
-        call WriteString
-        call Crlf
-        call divider
-        call Crlf
-        jmp askRetry
+    gameWon:
+        call divider                 ; Display divider line
+        lea edx, winnerDisplay       ; Load winning message address
+        call WriteString             ; Display winning message
+        call Crlf                    ; Print newline
+        call divider                 ; Display divider line
+        call Crlf                    ; Print newline
+        jmp askRetry                 ; Ask if the user wants to retry
 
-        gameLost:
-        call divider
-        lea edx, loserDisplay
-        call WriteString
+    gameLost:
+        call divider                 ; Display divider line
+        lea edx, loserDisplay        ; Load losing message address
+        call WriteString             ; Display losing message
 
-        xor ecx, ecx
-        lea esi, chosenWord
+        xor ecx, ecx                 ; Clear ECX (counter for displaying word)
+        lea esi, chosenWord          ; Load chosen word address into ESI
         .WHILE(ecx < 6)
-            mov al, byte ptr [esi+ecx]
-            call WriteChar
-            inc ecx
+            mov al, byte ptr [esi+ecx] ; Load character of the word into AL
+            call WriteChar           ; Display the character
+            inc ecx                  ; Increment counter
         .ENDW
-        call Crlf
-        call divider
-        call Crlf
-        jmp askRetry
+        call Crlf                    ; Print newline
+        call divider                 ; Display divider line
+        call Crlf                    ; Print newline
+        jmp askRetry                 ; Ask if the user wants to retry
 
-        askRetry:
-        lea edx, askTryAgainDisplay
-        call WriteString
-        call ReadChar
-        call Crlf
-        .IF(al == 'y' || al == 'Y')
-            call divider
-            call Crlf
-            jmp start
-        .ELSEIF(al == 'n' || al == 'N')
-            invoke ExitProcess, 0
-        .ELSE
-            jmp askRetry
+    askRetry:
+        lea edx, askTryAgainDisplay  ; Load retry prompt address
+        call WriteString             ; Display retry prompt
+        call ReadChar                ; Read user input
+        call Crlf                    ; Print newline
+        .IF(al == 'y' || al == 'Y')  ; If user wants to retry
+            call divider             ; Display divider line
+            call Crlf                ; Print newline
+            jmp start                ; Restart the game
+        .ELSEIF(al == 'n' || al == 'N') ; If user wants to quit
+            invoke ExitProcess, 0    ; Exit the program
+        .ELSE                        ; If invalid input
+            jmp askRetry             ; Repeat retry prompt
         .ENDIF
 
-main ENDP                              ; End of main procedure
+main ENDP                            ; End of main procedure
 
 
+; **********************************************************************;
+; displayHangman Procedure                                              ;
+; Description: Displays the hangman graphic corresponding to the number ;
+;              of failed attempts provided in EAX.                      ;
+; Input:                                                                ;
+;     EAX - Number of failed attempts (0 to 6).                         ;
+; Output: Displays the appropriate hangman graphic string.              ;
+; Memory Usage: None                                                    ;
+; Register Usage:                                                       ;
+;     EAX - Input (number of failed attempts).                          ;
+;     EDX - Holds the address of the hangman graphic string to display. ;
+; **********************************************************************;
 displayHangman PROC uses edx
-    ;takes number of fails in EAX
 
-    .IF(eax == 0)
-        lea edx, hangman0
-        call WriteString
-    .ELSEIF(eax == 1)
-        lea edx, hangman1
-        call WriteString
-    .ELSEIF(eax == 2)
-        lea edx, hangman2
-        call WriteString
-    .ELSEIF(eax == 3)
-        lea edx, hangman3
-        call WriteString
-    .ELSEIF(eax == 4)
-        lea edx, hangman4
-        call WriteString
-    .ELSEIF(eax == 5)
-        lea edx, hangman5
-        call WriteString
-    .ELSE
-        lea edx, hangman6
-        call WriteString
+    .IF(eax == 0)                   ; Check if no failed attempts
+        lea edx, hangman0           ; Load address of hangman graphic for 0 fails
+        call WriteString            ; Display the hangman graphic
+    .ELSEIF(eax == 1)               ; Check if 1 failed attempt
+        lea edx, hangman1           ; Load address of hangman graphic for 1 fail
+        call WriteString            ; Display the hangman graphic
+    .ELSEIF(eax == 2)               ; Check if 2 failed attempts
+        lea edx, hangman2           ; Load address of hangman graphic for 2 fails
+        call WriteString            ; Display the hangman graphic
+    .ELSEIF(eax == 3)               ; Check if 3 failed attempts
+        lea edx, hangman3           ; Load address of hangman graphic for 3 fails
+        call WriteString            ; Display the hangman graphic
+    .ELSEIF(eax == 4)               ; Check if 4 failed attempts
+        lea edx, hangman4           ; Load address of hangman graphic for 4 fails
+        call WriteString            ; Display the hangman graphic
+    .ELSEIF(eax == 5)               ; Check if 5 failed attempts
+        lea edx, hangman5           ; Load address of hangman graphic for 5 fails
+        call WriteString            ; Display the hangman graphic
+    .ELSE                          ; Any other value (assume 6 failed attempts)
+        lea edx, hangman6           ; Load address of hangman graphic for 6 fails
+        call WriteString            ; Display the hangman graphic
     .ENDIF
 
-    ret
+    ret                             ; Return to the caller
 displayHangman ENDP
 
+; **********************************************************************;
+; clearVars Procedure                                                   ;
+; Description: Clears the `triedLetters` and `validLetters` arrays by   ;
+;              setting all their elements to 0. This prepares the game  ;
+;              state for a new round.                                   ;
+; Input: None                                                           ;
+; Output: Both `triedLetters` and `validLetters` arrays are cleared.    ;
+; Memory Usage: Directly modifies `triedLetters` and `validLetters` arrays. ;
+; Register Usage:                                                       ;
+;     ECX - Loop counter for clearing the arrays.                       ;
+;     ESI - Pointer to the `validLetters` array.                        ;
+;     EDI - Pointer to the `triedLetters` array.                        ;
+; **********************************************************************;
 clearVars PROC uses ecx esi edi
-    lea edi, triedLetters
-    lea esi, validLetters
-    xor ecx, ecx
-    .WHILE(ecx < 26)
-        mov byte ptr [edi+ecx], 0
-        mov byte ptr [esi+ecx], 0
-        inc ecx
+    lea edi, triedLetters           ; Load address of `triedLetters` into EDI
+    lea esi, validLetters           ; Load address of `validLetters` into ESI
+    xor ecx, ecx                    ; Clear ECX (loop counter)
+    .WHILE(ecx < 26)                ; Loop through 26 elements (A-Z)
+        mov byte ptr [edi+ecx], 0   ; Set element in `triedLetters` to 0
+        mov byte ptr [esi+ecx], 0   ; Set element in `validLetters` to 0
+        inc ecx                     ; Increment loop counter
     .endw
-    ret
+
+    ret                             ; Return to the caller
 clearVars ENDP
 
+; **********************************************************************;
+; checkLetter Procedure                                                 ;
+; Description: Checks whether the given uppercase ASCII character in AL 
+;              is a valid letter (i.e., exists in `validLetters`). Marks
+;              the letter as "tried" in the `triedLetters` array.        ;
+; Input:                                                                ;
+;     AL - Uppercase ASCII character ('A'-'Z') to check.                ;
+; Output:                                                               ;
+;     AL - Set to 1 if the letter is valid, 0 otherwise.                ;
+; Memory Usage:                                                         ;
+;     Modifies the `triedLetters` array to mark the letter as tried.    ;
+; Register Usage:                                                       ;
+;     AL - Input character (and result of validity check).              ;
+;     AH - Cleared to 0 for indexing purposes.                          ;
+;     ESI - Pointer to the `validLetters` array.                        ;
+;     EDI - Pointer to the `triedLetters` array.                        ;
+; **********************************************************************;
 checkLetter PROC uses esi edi
-    ; takes uppercase ASCII char in AL
-    ; sets al 1 if char is valid, and sets al to 0 if invalid
-    ; sets letter as tried in triedLetters regardless
-    sub al, "A"
-    mov ah, 0
-    lea edi, triedLetters
-    mov byte ptr [edi+eax], 1
-    lea esi, validLetters
-    .IF(byte ptr [esi+eax] == 1)
-        mov eax, 1
-    .ELSE
-        mov eax, 0
+
+    sub al, "A"                     ; Convert ASCII letter ('A'-'Z') to 0-based index (0-25)
+    mov ah, 0                       ; Clear AH to prepare for 16-bit addressing if needed
+    lea edi, triedLetters           ; Load address of `triedLetters` into EDI
+    mov byte ptr [edi+eax], 1       ; Mark the letter as "tried" in `triedLetters`
+
+    lea esi, validLetters           ; Load address of `validLetters` into ESI
+    .IF(byte ptr [esi+eax] == 1)    ; Check if the letter is valid (present in `validLetters`)
+        mov eax, 1                  ; Set AL to 1 (letter is valid)
+    .ELSE                           ; If the letter is not valid
+        mov eax, 0                  ; Set AL to 0 (letter is invalid)
     .ENDIF
-    ret
+
+    ret                             ; Return to the caller
 checkLetter ENDP
 
-loadValidLetters PROC uses esi edi eax ebx ecx edx
-    lea esi, chosenWord
-    xor ecx, ecx
-    xor eax, eax
-    .WHILE(ecx < 6)
-        lea ebx, validLetters   
-        mov al, byte ptr [esi+ecx]
-        sub al, "a"
-        mov byte ptr [eax+ebx], 1
-        inc ecx
+; **********************************************************************;
+; loadValidLetters Procedure                                            ;
+; Description: Populates the `validLetters` array based on the letters 
+;              in the `chosenWord`. Each letter in `chosenWord` is 
+;              marked as valid in `validLetters`.                       ;
+; Input: None                                                           ;
+; Output: Updates the `validLetters` array to mark valid letters.       ;
+; Memory Usage: Modifies the `validLetters` array.                      ;
+; Register Usage:                                                       ;
+;     EAX - Holds the converted 0-based index of the current letter.    ;
+;     EBX - Pointer to the `validLetters` array.                        ;
+;     ECX - Loop counter (tracks position in `chosenWord`).             ;
+;     ESI - Pointer to the `chosenWord` array.                         ;
+; **********************************************************************;
+loadValidLetters PROC uses esi eax ebx ecx
+
+    lea esi, chosenWord             ; Load address of `chosenWord` into ESI
+    xor ecx, ecx                    ; Clear ECX (loop counter)
+    xor eax, eax                    ; Clear EAX (used for letter index)
+
+    .WHILE(ecx < 6)                 ; Loop through all 6 letters in `chosenWord`
+        lea ebx, validLetters       ; Load address of `validLetters` into EBX
+        mov al, byte ptr [esi+ecx]  ; Load the current letter from `chosenWord`
+        sub al, "a"                 ; Convert ASCII letter ('a'-'z') to 0-based index (0-25)
+        mov byte ptr [eax+ebx], 1   ; Mark the letter as valid in `validLetters`
+        inc ecx                     ; Increment loop counter
     .ENDW
-    ret
+
+    ret                             ; Return to the caller
 loadValidLetters ENDP
 
 
-displayTriedLetters PROC uses eax ebx edx ecx edi esi
-    lea edi, allLetters
-    lea edx, triedLettersDisplay
-    lea esi, triedLetters
-    call WriteString
-    xor ecx, ecx
-    .while(ecx < 26)
-        .IF( byte ptr [esi+ecx] == 1)
-            mov al, byte ptr [edi+ecx]
-            call WriteChar
-            mov al, ' '
-            call WriteChar
+
+; **********************************************************************;
+; displayTriedLetters Procedure                                         ;
+; Description: Displays all the letters that have been marked as "tried"
+;              in the `triedLetters` array. Each "tried" letter is shown
+;              followed by a space for readability.                    ;
+; Input: None                                                           ;
+; Output: Displays the "tried" letters on the screen.                   ;
+; Memory Usage: Reads data from the `triedLetters` and `allLetters` arrays. ;
+; Register Usage:                                                       ;
+;     EAX - Holds the ASCII value of the current letter to display.     ;
+;     EDX - Holds the address of the `triedLettersDisplay` message.     ;
+;     ECX - Loop counter (tracks position in the arrays).               ;
+;     EDI - Pointer to the `allLetters` array.                         ;
+;     ESI - Pointer to the `triedLetters` array.                       ;
+; **********************************************************************;
+displayTriedLetters PROC uses eax edx ecx edi esi
+
+    lea edi, allLetters             ; Load address of `allLetters` into EDI
+    lea edx, triedLettersDisplay    ; Load address of `triedLettersDisplay` message into EDX
+    lea esi, triedLetters           ; Load address of `triedLetters` into ESI
+    call WriteString                ; Display the message "Tried Letters:"
+
+    xor ecx, ecx                    ; Clear ECX (loop counter)
+    .WHILE(ecx < 26)                ; Loop through all 26 letters (A-Z)
+        .IF(byte ptr [esi+ecx] == 1) ; Check if the letter has been marked as "tried"
+            mov al, byte ptr [edi+ecx] ; Load the ASCII letter from `allLetters`
+            call WriteChar           ; Display the letter
+            mov al, ' '              ; Load a space character
+            call WriteChar           ; Display the space
         .ENDIF
-        inc ecx
-    .endw
-    call Crlf
-    ret
+        inc ecx                     ; Increment loop counter
+    .ENDW
+
+    call Crlf                       ; Move to the next line
+    ret                             ; Return to the caller
 displayTriedLetters ENDP
 
 
-displayWordSoFar PROC uses  ebx edx ecx edi esi
-    ;displays word so far
-    ;return number incorrect in AL
-    ;if al = 0, word is complete
-    lea edi, chosenWord
-    lea esi, triedLetters
-    lea edx, wordSoFarDisplay
-    call WriteString
 
-    xor ecx, ecx
-    xor edx, edx
-    xor ebx, ebx
-    .WHILE(ecx < 6)
-        mov bl, byte ptr [edi+ecx]
-        sub bl, 'a'
-        .IF(byte ptr [esi+ebx] == 1)
-            mov al, byte ptr [edi+ecx]
-            call WriteChar
-        .ELSE
-            mov al, '_'
-            call WriteChar
-            inc dl
+; **********************************************************************;
+; displayWordSoFar Procedure                                            ;
+; Description: Displays the current progress of the guessed word.       ;
+;              Shows correctly guessed letters and underscores for      ;
+;              letters yet to be guessed.                               ;
+; Input: None                                                           ;
+; Output: Displays the "word so far" on the screen.                     ;
+;         AL - Number of incorrect guesses (letters yet to be guessed). ;
+;         If AL = 0, the word is complete.                              ;
+; Memory Usage: Reads data from `chosenWord` and `triedLetters` arrays. ;
+; Register Usage:                                                       ;
+;     AL - Holds the current letter to display or underscore. Also used ;
+;          to return the count of missing letters (incorrect guesses).  ;
+;     BL - Holds the 0-based index of the current letter.               ;
+;     CL - Loop counter (tracks position in the word).                  ;
+;     DL - Counter for the number of missing letters (incorrect guesses).;
+;     EDI - Pointer to the `chosenWord` array.                          ;
+;     ESI - Pointer to the `triedLetters` array.                        ;
+;     EDX - Used for address calculations and as a return value.        ;
+; **********************************************************************;
+displayWordSoFar PROC uses ebx edx ecx edi esi
+
+    lea edi, chosenWord             ; Load address of `chosenWord` into EDI
+    lea esi, triedLetters           ; Load address of `triedLetters` into ESI
+    lea edx, wordSoFarDisplay       ; Load address of `wordSoFarDisplay` message into EDX
+    call WriteString                ; Display the message "Word so far:"
+
+    xor ecx, ecx                    ; Clear ECX (loop counter)
+    xor edx, edx                    ; Clear EDX (used for counting incorrect guesses)
+    xor ebx, ebx                    ; Clear EBX (used for letter index calculation)
+
+    .WHILE(ecx < 6)                 ; Loop through the 6 letters of the chosen word
+        mov bl, byte ptr [edi+ecx]  ; Load the current letter from `chosenWord` into BL
+        sub bl, 'a'                 ; Convert the letter to a 0-based index (0-25)
+        .IF(byte ptr [esi+ebx] == 1) ; Check if the letter has been guessed
+            mov al, byte ptr [edi+ecx] ; Load the correctly guessed letter
+            call WriteChar           ; Display the letter
+        .ELSE                       ; If the letter has not been guessed
+            mov al, '_'             ; Use an underscore as a placeholder
+            call WriteChar           ; Display the underscore
+            inc dl                  ; Increment the count of missing letters
         .ENDIF
-        inc ecx
+        inc ecx                     ; Move to the next letter in the word
     .ENDW
-    mov al, dl
-    ret
+
+    mov al, dl                      ; Move the count of missing letters to AL
+    ret                             ; Return to the caller
 displayWordSoFar ENDP
+
 
 
 invalidInput PROC uses edx
