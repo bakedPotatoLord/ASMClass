@@ -18,80 +18,57 @@ INCLUDE C:\Irvine\Irvine32.inc          ; Include Irvine32 library for basic I/O
 INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 
 .data
-
     allwords DB "diadem","indigo","sphere","schism","avatar","guitar","sulfur","dengue","walrus","lizard"
-
     chosenWord DB 6 DUP(0)
-
     allLetters DB "ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
-
     triedLetters DB 26 DUP(0)
-
     validLetters DB 26 DUP(0)
-
-
     hangman0 DB "+----+---",13,10,
                 "|        ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,0
-
     hangman1 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,0
-
     hangman2 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|    I   ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,0
-
     hangman3 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I   ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,0
-
     hangman4 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I\  ",13,10,
                 "|        ",13,10,
                 "|        ",13,10,0
-
     hangman5 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I\  ",13,10,
                 "|   /    ",13,10,
                 "|        ",13,10,0
-
     hangman6 DB "+----+---",13,10,
                 "|    o   ",13,10,
                 "|   /I\  ",13,10,
                 "|   / \  ",13,10,
                 "|        ",13,10,0
-
-
     welcomeMessage DB "Welcome to Hangman!",0
-
     letterPrompt DB "Guess a letter: ",0
-
     letterFound DB "Congratulations! That letter is in the word.",0
     letterNotFound DB "Sorry, that letter is not in the word.",0
-
     triedLettersDisplay DB "Tried letters: ",0
     wordSoFarDisplay DB "the word so far: ",0
-
     invalidInputDisplay DB "Invalid input. Please try again.",0
-
     winnerDisplay DB "Congratulations! You won!",0
     loserDisplay DB "Sorry, you lost. The correct word was: ",0
-
     askTryAgainDisplay DB "Would you like to try again? (y/n) :",0
-
     dividerDisplay DB "------------------------------------",0 ; Divider line for formatting
-    
 .code
 
 ; **********************************************************************;
@@ -107,9 +84,7 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
 ; EDX - used to pass string to WriteString function                     ;
 ; ESI - holds the number of tries remaining                             ;
 ; **********************************************************************;
-
 main PROC
-
     start:                           ; Start of the game loop
 
     mov eax, 10
@@ -120,11 +95,9 @@ main PROC
     add eax, ebx ;eax holds start of word
 
     call clearVars
-
+    
     lea esi, chosenWord
-
     xor ecx, ecx ; ecx will be counter
-
     .WHILE(ecx < 6)
         mov dl, byte ptr [eax+ecx]
 
@@ -139,11 +112,8 @@ main PROC
     call Crlf
 
     xor ecx, ecx ; ecx will be attempt counter
-
     xor eax, eax
-
     gameLoop:
-
     .WHILE(ecx < 6)
 
         lea edx, letterPrompt
@@ -156,12 +126,10 @@ main PROC
         
         charProcessing:
         .IF( al >= "a" && al <= "z")
-
             sub al, 32 ; convert to uppercase
         .ENDIF
         .IF(al >= "A" && al <= "Z")
             call checkLetter
-
             .if(al == 1) ; if valid
                 lea edx, letterFound
                 call WriteString
@@ -172,9 +140,6 @@ main PROC
                 call WriteString
                 call Crlf
             .endif
-
-            
-
         .ELSE
             call invalidInput
             call Crlf
@@ -183,22 +148,17 @@ main PROC
         .ENDIF
 
         call displayWordSoFar
-
         push eax
         call Crlf
-
         call displayTriedLetters
         call Crlf
         mov eax, ecx
         call displayHangman
         call Crlf
-
         pop eax
-
         .if(al == 0) ; if word complete
             jmp gameWon
         .endif
-
     .ENDW
 
     JMP gameLost
@@ -210,11 +170,9 @@ main PROC
         call Crlf
         call divider
         call Crlf
-
         jmp askRetry
 
         gameLost:
-
         call divider
         lea edx, loserDisplay
         call WriteString
@@ -226,20 +184,16 @@ main PROC
             call WriteChar
             inc ecx
         .ENDW
-
         call Crlf
         call divider
         call Crlf
-
         jmp askRetry
 
         askRetry:
-
         lea edx, askTryAgainDisplay
         call WriteString
         call ReadChar
         call Crlf
-
         .IF(al == 'y' || al == 'Y')
             call divider
             call Crlf
@@ -279,22 +233,18 @@ displayHangman PROC uses edx
         call WriteString
     .ENDIF
 
-
-
     ret
 displayHangman ENDP
 
 clearVars PROC uses ecx esi edi
     lea edi, triedLetters
     lea esi, validLetters
-
     xor ecx, ecx
     .WHILE(ecx < 26)
         mov byte ptr [edi+ecx], 0
         mov byte ptr [esi+ecx], 0
         inc ecx
     .endw
-    
     ret
 clearVars ENDP
 
@@ -307,7 +257,6 @@ checkLetter PROC uses esi edi
     lea edi, triedLetters
     mov byte ptr [edi+eax], 1
     lea esi, validLetters
-
     .IF(byte ptr [esi+eax] == 1)
         mov eax, 1
     .ELSE
@@ -317,45 +266,33 @@ checkLetter PROC uses esi edi
 checkLetter ENDP
 
 loadValidLetters PROC uses esi edi eax ebx ecx edx
-
     lea esi, chosenWord
-
     xor ecx, ecx
     xor eax, eax
-
     .WHILE(ecx < 6)
-
         lea ebx, validLetters   
         mov al, byte ptr [esi+ecx]
         sub al, "a"
-
         mov byte ptr [eax+ebx], 1
-
         inc ecx
     .ENDW
-
     ret
 loadValidLetters ENDP
 
 
 displayTriedLetters PROC uses eax ebx edx ecx edi esi
     lea edi, allLetters
-
     lea edx, triedLettersDisplay
     lea esi, triedLetters
-
     call WriteString
-
     xor ecx, ecx
     .while(ecx < 26)
-
         .IF( byte ptr [esi+ecx] == 1)
             mov al, byte ptr [edi+ecx]
             call WriteChar
             mov al, ' '
             call WriteChar
         .ENDIF
-
         inc ecx
     .endw
     call Crlf
@@ -367,10 +304,8 @@ displayWordSoFar PROC uses  ebx edx ecx edi esi
     ;displays word so far
     ;return number incorrect in AL
     ;if al = 0, word is complete
-
     lea edi, chosenWord
     lea esi, triedLetters
-
     lea edx, wordSoFarDisplay
     call WriteString
 
@@ -390,9 +325,7 @@ displayWordSoFar PROC uses  ebx edx ecx edi esi
         .ENDIF
         inc ecx
     .ENDW
-
     mov al, dl
-
     ret
 displayWordSoFar ENDP
 
