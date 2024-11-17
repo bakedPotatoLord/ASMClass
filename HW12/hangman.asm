@@ -1,12 +1,16 @@
 ; **********************************************************************;
-; Program Name:   Random Number Guesser (randGuesser.asm)               ;
-; Program Description: This program allows the user to guess a randomly 
-;                      generated number between 1 and 50. Feedback is 
-;                      given on each guess, and the user can choose to 
-;                      play again after each round. 
+; Program Name:   Hangman Game (hangman.asm)                            ;
+; Program Description: This program implements a classic Hangman game   ;
+;                      using MASM x86 assembly. Players attempt to      ;
+;                      guess a randomly selected word, one letter at    ;
+;                      a time, with a maximum of 6 incorrect attempts.  ;
+;                      The program includes features such as tracking   ;
+;                      guessed letters, displaying the word's progress, ;
+;                      and showing a hangman graphic as incorrect       ;
+;                      guesses accumulate.                              ;
 ; Author:          Josiah Hamm   @bakedPotatoLord                       ;
 ; Course Number:   CSC2025X01 - Computer Architecture/Assembly Language ;
-; Date:            11/08/2024                                           ;
+; Date:            11/17/2024                                           ;
 ; **********************************************************************;
 
 .386                              ; Specify 32-bit code
