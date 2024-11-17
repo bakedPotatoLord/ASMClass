@@ -81,8 +81,14 @@ INCLUDELIB C:\Irvine\Irvine32.lib       ; Link Irvine32 library
     letterNotFound DB "Sorry, that letter is not in the word.",0
 
     triedLettersDisplay DB "Tried letters: ",0
+    wordSoFarDisplay DB "the word so far: ",0
 
     invalidInputDisplay DB "Invalid input. Please try again.",0
+
+    winnerDisplay DB "Congratulations! You won!",0
+    loserDisplay DB "Sorry, you lost. The correct word was: ",0
+
+    askTryAgainDisplay DB "Would you like to try again? (y/n) :",0
 
     dividerDisplay DB "------------------------------------",0 ; Divider line for formatting
     
@@ -140,8 +146,6 @@ main PROC
 
     .WHILE(ecx < 6)
 
-        
-
         lea edx, letterPrompt
         call WriteString
         call ReadChar
@@ -169,6 +173,8 @@ main PROC
                 call Crlf
             .endif
 
+            
+
         .ELSE
             call invalidInput
             call Crlf
@@ -176,19 +182,73 @@ main PROC
             jmp gameLoop
         .ENDIF
 
-        
+        call displayWordSoFar
+
+        push eax
+        call Crlf
+
         call displayTriedLetters
+        call Crlf
+        mov eax, ecx
+        call displayHangman
+        call Crlf
 
+        pop eax
 
-        
+        .if(al == 0) ; if word complete
+            jmp gameWon
+        .endif
+
     .ENDW
 
+    JMP gameLost
 
-    
+        gameWon:
+        call divider
+        lea edx, winnerDisplay
+        call WriteString
+        call Crlf
+        call divider
+        call Crlf
 
+        jmp askRetry
 
-    
-    invoke ExitProcess, 0       ; Exit program with exit code 0
+        gameLost:
+
+        call divider
+        lea edx, loserDisplay
+        call WriteString
+
+        xor ecx, ecx
+        lea esi, chosenWord
+        .WHILE(ecx < 6)
+            mov al, byte ptr [esi+ecx]
+            call WriteChar
+            inc ecx
+        .ENDW
+
+        call Crlf
+        call divider
+        call Crlf
+
+        jmp askRetry
+
+        askRetry:
+
+        lea edx, askTryAgainDisplay
+        call WriteString
+        call ReadChar
+        call Crlf
+
+        .IF(al == 'y' || al == 'Y')
+            call divider
+            call Crlf
+            jmp start
+        .ELSEIF(al == 'n' || al == 'N')
+            invoke ExitProcess, 0
+        .ELSE
+            jmp askRetry
+        .ENDIF
 
 main ENDP                              ; End of main procedure
 
@@ -268,9 +328,8 @@ loadValidLetters PROC uses esi edi eax ebx ecx edx
         lea ebx, validLetters   
         mov al, byte ptr [esi+ecx]
         sub al, "a"
-        add ebx, eax
 
-        mov byte ptr [ebx], 1
+        mov byte ptr [eax+ebx], 1
 
         inc ecx
     .ENDW
@@ -302,6 +361,41 @@ displayTriedLetters PROC uses eax ebx edx ecx edi esi
     call Crlf
     ret
 displayTriedLetters ENDP
+
+
+displayWordSoFar PROC uses  ebx edx ecx edi esi
+    ;displays word so far
+    ;return number incorrect in AL
+    ;if al = 0, word is complete
+
+    lea edi, chosenWord
+    lea esi, triedLetters
+
+    lea edx, wordSoFarDisplay
+    call WriteString
+
+    xor ecx, ecx
+    xor edx, edx
+    xor ebx, ebx
+    .WHILE(ecx < 6)
+        mov bl, byte ptr [edi+ecx]
+        sub bl, 'a'
+        .IF(byte ptr [esi+ebx] == 1)
+            mov al, byte ptr [edi+ecx]
+            call WriteChar
+        .ELSE
+            mov al, '_'
+            call WriteChar
+            inc dl
+        .ENDIF
+        inc ecx
+    .ENDW
+
+    mov al, dl
+
+    ret
+displayWordSoFar ENDP
+
 
 invalidInput PROC uses edx
     lea edx, invalidInputDisplay             ; Load invalid input message
